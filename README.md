@@ -2,10 +2,14 @@
 
 A modular FastAPI backend for fact-checking claims using AI agents.
 
+![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100.0+-green.svg)
+![Agno](https://img.shields.io/badge/Agno-0.1.0+-orange.svg)
+
 ## Project Structure
 
 ```
-fact_check_api/
+fact-check/
 ├── api/                  # API endpoints
 │   └── routes/
 │       └── fact_check.py # Fact checking endpoints
@@ -20,9 +24,16 @@ fact_check_api/
 ├── services/             # Services and integrations
 │   └── agents/           # AI agent definitions
 │       └── agent_factory.py
-└── utils/                # Utility functions
-    ├── extractors.py     # Content extraction utilities
-    └── proxies.py        # User agent strings
+├── utils/                # Utility functions
+│   ├── extractors.py     # Content extraction utilities
+│   └── proxies.py        # User agent strings
+├── .gitignore            # Git ignore file
+├── app.py                # FastAPI application definition
+├── main.py               # Main entry point
+├── pyproject.toml        # Project metadata and dependencies
+├── README.md             # Project documentation
+├── requirements.txt      # Pip requirements file
+└── uv.lock               # Lock file for dependencies
 ```
 
 ## Features
@@ -37,9 +48,21 @@ fact_check_api/
 ## API Endpoints
 
 - `POST /fact-check/ask`: Asynchronously fact-check a claim or query
-- `POST /fact-check/ask-sync`: Synchronously fact-check a claim or query
 - `GET /health`: Health check endpoint
 - `GET /`: Welcome page with link to documentation
+
+## Dependencies
+
+- **agno (>= 0.1.0)**: AI agent orchestration library
+- **FastAPI (>= 0.100.0)**: Modern, fast web framework
+- **Pydantic (>= 2.0.0)**: Data validation and settings management
+- **Uvicorn (>= 0.23.0)**: ASGI server implementation
+- **boto3 (>= 1.28.0)**: AWS SDK for Python
+- **requests/httpx**: HTTP client libraries
+- **python-dotenv**: Environment variable management
+- **python-multipart**: Multipart form parsing
+
+For a complete list of dependencies, see `pyproject.toml`.
 
 ## Setup Instructions
 
@@ -48,6 +71,11 @@ fact_check_api/
    ```bash
    pip install -r requirements.txt
    ```
+   or using the project file:
+   ```bash
+   pip install -e .
+   ```
+
 3. Create a `.env` file with required API keys:
    ```
    OPENAI_API_KEY=your_openai_key
@@ -60,9 +88,10 @@ fact_check_api/
    AWS_SECRET_ACCESS_KEY=your_aws_secret_key
    AWS_REGION=us-east-1
    ```
+
 4. Run the API:
    ```bash
-   python -m fact_check_api.main
+   python main.py
    ```
    
 ## Environment Variables
@@ -98,7 +127,7 @@ To run the API in development mode with auto-reload:
 
 ```bash
 export DEBUG=True
-python -m fact_check_api.main
+python main.py
 ```
 
 ## Documentation
@@ -107,3 +136,13 @@ When the API is running, you can access the interactive documentation:
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
