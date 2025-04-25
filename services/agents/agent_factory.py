@@ -1,12 +1,7 @@
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from agno.models.openrouter import OpenRouter
-from agno.models.google import Gemini
-from agno.models.aws import AwsBedrock
 from agno.tools.exa import ExaTools
 from agno.tools.tavily import TavilyTools
-from agno.tools.reasoning import ReasoningTools
-
 from models.schemas import ClaimsToBeVerified, IntermediateResponse
 from config import settings
 
