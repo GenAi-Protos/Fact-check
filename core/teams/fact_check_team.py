@@ -85,8 +85,9 @@ def create_fact_check_team():
         show_members_responses=True,
         markdown=True,
         # response_model=FinalResponse,
-        show_tool_calls=False,
-        debug_mode=True,
+        show_tool_calls=True,
+        # debug_mode=True,
+        
         expected_output="""
         For a single claim:
         {

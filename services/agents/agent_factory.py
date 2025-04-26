@@ -8,11 +8,12 @@ from config import settings
 # Setup environment variables for agents
 settings.setup_env_variables()
 
+
 class AgentFactory:
     """Factory class for creating AI agents used in fact checking"""
-    
+
     structured_output_agent = Agent(
-        name='Claim Checker',
+        name="Claim Checker",
         model=OpenAIChat(id="gpt-4.1", temperature=0.2),
         description="An AI agent that extracts fact-check-worthy claims from user input.",
         instructions="""Identify and extract only the fact-check-worthy claims present in the user's input text. 
@@ -37,16 +38,48 @@ class AgentFactory:
         add_datetime_to_instructions=True,
         # response_model=IntermediateResponse,
         use_json_mode=True,
+        expected_output="""
+        {
+  "claims": [
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    ...
+  ]
+}
+
+    """,
     )
 
     news_search_agent = Agent(
         name="News Searcher",
         model=OpenAIChat(id="gpt-4o-mini"),
-        tools=[ExaTools(
-            include_domains=["cnbc.com", "reuters.com", "bloomberg.com", "aninews.in", "indiatoday.in", "aajtak.in", "linkedin.com"],
-            text=False,
-            highlights=False,
-        )],
+        tools=[
+            ExaTools(
+                include_domains=[
+                    "cnbc.com",
+                    "reuters.com",
+                    "bloomberg.com",
+                    "aninews.in",
+                    "indiatoday.in",
+                    "aajtak.in",
+                    "linkedin.com",
+                ],
+                text=False,
+                highlights=False,
+            )
+        ],
         description="An AI Agent which is used when we have to do a find news articles from credible news websites",
         instructions="""
         A user has asked a question.
@@ -62,6 +95,28 @@ class AgentFactory:
         add_datetime_to_instructions=True,
         # response_model=IntermediateResponse,
         use_json_mode=True,
+        expected_output="""
+        {
+  "claims": [
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    ...
+  ]
+}
+
+    """,
     )
 
     deep_research_agent = Agent(
@@ -83,6 +138,28 @@ class AgentFactory:
         add_datetime_to_instructions=True,
         # response_model=IntermediateResponse,
         use_json_mode=True,
+        expected_output="""
+        {
+  "claims": [
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    {
+      "claim": "",
+      "verdict": "",
+      "explanation": "",
+      "url": [],
+      "confidence": 0.0
+    },
+    ...
+  ]
+}
+
+    """,
     )
 
     # Additional agents can be added here as needed
