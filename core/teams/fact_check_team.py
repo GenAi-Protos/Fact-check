@@ -84,7 +84,7 @@ def create_fact_check_team():
         share_member_interactions=True,
         show_members_responses=True,
         markdown=True,
-        response_model=FinalResponse,
+        # response_model=FinalResponse,
         show_tool_calls=False,
         debug_mode=True,
         expected_output="""

@@ -35,7 +35,7 @@ class AgentFactory:
         show_tool_calls=False,
         markdown=True,
         add_datetime_to_instructions=True,
-        response_model=IntermediateResponse,
+        # response_model=IntermediateResponse,
         use_json_mode=True,
     )
 
@@ -60,7 +60,7 @@ class AgentFactory:
         show_tool_calls=False,
         markdown=True,
         add_datetime_to_instructions=True,
-        response_model=IntermediateResponse,
+        # response_model=IntermediateResponse,
         use_json_mode=True,
     )
 
@@ -81,7 +81,7 @@ class AgentFactory:
         description="An AI fact-checking agent that verifies claims by searching the web and extracting evidence-backed information from credible sources such as news outlets, academic articles, and official reports.",
         show_tool_calls=False,
         add_datetime_to_instructions=True,
-        response_model=IntermediateResponse,
+        # response_model=IntermediateResponse,
         use_json_mode=True,
     )
 

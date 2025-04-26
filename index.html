@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agno Agent Stream Test</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #queryInput { width: 80%; padding: 8px; margin-right: 5px; }
+        #sendButton { padding: 8px 15px; }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            min-height: 100px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Test Agno Agent Streaming</h1>
+
+    <input type="text" id="queryInput" placeholder="Enter your query here...">
+    <button id="sendButton">Send Query</button>
+
+    <h2>Streaming Response:</h2>
+    <pre id="output">Waiting for query...</pre>
+
+    <script>
+        const queryInput = document.getElementById('queryInput');
+        const sendButton = document.getElementById('sendButton');
+        const outputArea = document.getElementById('output');
+        const apiUrl = 'http://localhost:8000/fact-check/ask'; // Your FastAPI endpoint
+
+        // Helper to safely display JSON or other data types
+        function formatValue(value) {
+            if (typeof value === 'object' && value !== null) {
+                return `<pre>${JSON.stringify(value, null, 2)}</pre>`;
+            }
+            return value;
+        }
+
+        // Helper to extract URLs
+        function extractUrls(text) {
+            if (typeof text !== 'string') return [];
+            const urlRegex = /(https?:\/\/[^\s)]+)/g;
+            return text.match(urlRegex) || [];
+        }
+
+        // Helper to check if a value is meaningful (not null, undefined, empty string, or empty array)
+        function hasValue(value) {
+            if (value === null || typeof value === 'undefined') return false;
+            if (typeof value === 'string' && value.trim() === '') return false;
+            if (Array.isArray(value) && value.length === 0) return false;
+            // Optionally add check for empty objects: if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+            return true;
+        }
+
+        // Function to format and display different event types using specific keys, filtering empty values
+        function displayEvent(eventData) {
+            let htmlOutput = `<hr><div><strong>EVENT: ${eventData.event || 'Unknown'}</strong><br>`;
+            let contentAdded = false; // Track if any content was added for this event besides the header
+
+            if (hasValue(eventData.error)) {
+                htmlOutput = `<hr><div class="error"><strong>ERROR:</strong> ${formatValue(eventData)}</div>`;
+                contentAdded = true;
+            } else if (eventData.event === 'RunStarted') {
+                if (hasValue(eventData.run_id)) { htmlOutput += `<strong>Run ID:</strong> ${eventData.run_id}<br>`; contentAdded = true; }
+                if (hasValue(eventData.session_id)) { htmlOutput += `<strong>Session ID:</strong> ${eventData.session_id}<br>`; contentAdded = true; }
+            } else if (eventData.event === 'RunResponse') {
+                // Append intermediate text directly, without extra formatting
+                const content = eventData.content;
+                if (hasValue(content)) {
+                     // Use textContent for direct text append within <pre> to preserve formatting
+                     outputArea.textContent += content;
+                     outputArea.scrollTop = outputArea.scrollHeight;
+                }
+                // Don't add the standard event div if it's just text content
+                return;
+            } else if (eventData.event === 'ReasoningStep') {
+                const step = eventData.content;
+                if (step) {
+                    if (hasValue(step.title)) { htmlOutput += `<strong>Reasoning Step:</strong> ${step.title}<br>`; contentAdded = true; }
+                    if (hasValue(step.reasoning)) { htmlOutput += `<strong>Reasoning:</strong> ${formatValue(step.reasoning)}`; contentAdded = true; } // Use pre for multiline
+                    if (hasValue(step.action)) { htmlOutput += `<strong>Action:</strong> ${step.action}<br>`; contentAdded = true; }
+                    if (hasValue(step.result)) { htmlOutput += `<strong>Result:</strong> ${step.result}<br>`; contentAdded = true; }
+                    if (hasValue(step.confidence)) { htmlOutput += `<strong>Confidence:</strong> ${step.confidence}<br>`; contentAdded = true; }
+                }
+            } else if (eventData.event === 'ToolCallStarted') {
+                if (hasValue(eventData.formatted_tool_calls)) {
+                    htmlOutput += `<strong>Tool Call(s) Started:</strong><ul>`;
+                    eventData.formatted_tool_calls.forEach(call => {
+                        htmlOutput += `<li>${call}</li>`;
+                    });
+                    htmlOutput += `</ul>`;
+                    contentAdded = true;
+                }
+            } else if (eventData.event === 'ToolCallCompleted') {
+                 if (hasValue(eventData.tools)) {
+                    htmlOutput += `<strong>Tool Call(s) Completed:</strong><br>`;
+                    eventData.tools.forEach(tool => {
+                        let toolContentAdded = false;
+                        let toolHtml = `<div style="margin-left: 15px; border-left: 2px solid #ddd; padding-left: 10px; margin-bottom: 10px;">`;
+                        if (hasValue(tool.tool_name)) { toolHtml += `<strong>Tool Used:</strong> ${tool.tool_name}<br>`; toolContentAdded = true; }
+                        if (hasValue(tool.tool_args)) { toolHtml += `<strong>Tool Args:</strong> ${formatValue(tool.tool_args)}`; toolContentAdded = true; }
+
+                        // Specific handling based on tool name
+                        if (tool.tool_name === 'transfer_task_to_member') {
+                            if (hasValue(tool.tool_args?.member_id)) { toolHtml += `<strong>Task Assigned To:</strong> ${tool.tool_args.member_id}<br>`; toolContentAdded = true; }
+                            if (hasValue(tool.tool_args?.task_description)) { toolHtml += `<strong>Task Description:</strong> ${formatValue(tool.tool_args.task_description)}`; toolContentAdded = true; }
+                            if (hasValue(tool.content)) { toolHtml += `<strong>Agent Response:</strong> ${formatValue(tool.content)}`; toolContentAdded = true; }
+                        } else if (tool.tool_name === 'set_shared_context') {
+                             if (hasValue(tool.tool_args?.state)) { toolHtml += `<strong>Shared Context Updated:</strong> ${formatValue(tool.tool_args.state)}`; toolContentAdded = true; }
+                             else if (hasValue(tool.content)) { toolHtml += `<strong>Tool Result:</strong> ${formatValue(tool.content)}`; toolContentAdded = true; } // Fallback
+                        } else if (tool.tool_name === 'web_search_using_tavily') {
+                            if (hasValue(tool.content)) { toolHtml += `<strong>Tool Result:</strong> ${formatValue(tool.content)}`; toolContentAdded = true; }
+                            const urls = extractUrls(tool.content);
+                            if (urls.length > 0) {
+                                toolHtml += `<strong>Citations:</strong><ul>`;
+                                urls.forEach(url => {
+                                    toolHtml += `<li><a href="${url}" target="_blank">${url}</a></li>`;
+                                });
+                                toolHtml += `</ul>`;
+                                toolContentAdded = true;
+                            }
+                        } else { // Default for 'think', 'analyze', etc.
+                            if (hasValue(tool.content)) { toolHtml += `<strong>Tool Result:</strong> ${formatValue(tool.content)}`; toolContentAdded = true; }
+                        }
+
+                        if (hasValue(tool.metrics?.time)) { toolHtml += `<strong>Tool Time:</strong> ${tool.metrics.time.toFixed(3)}s<br>`; toolContentAdded = true; }
+                        toolHtml += `</div>`;
+                        if (toolContentAdded) {
+                             htmlOutput += toolHtml;
+                             contentAdded = true;
+                        }
+                    });
+                 }
+            } else if (eventData.event === 'ReasoningCompleted') {
+                htmlOutput += `--- Reasoning Completed ---<br>`;
+                contentAdded = true;
+                // Optionally display full reasoning steps if needed
+                // if (hasValue(eventData.content?.reasoning_steps)) { htmlOutput += `<strong>Full Steps:</strong> ${formatValue(eventData.content.reasoning_steps)}`; contentAdded = true; }
+            } else if (eventData.event === 'RunCompleted') {
+                htmlOutput += `<strong>Final Output:</strong><br>`;
+                contentAdded = true;
+                if (hasValue(eventData.content)) {
+                    try {
+                        // Try parsing the final content as JSON for pretty printing
+                        const finalJson = JSON.parse(eventData.content);
+                        htmlOutput += formatValue(finalJson);
+                    } catch (e) {
+                        // If not JSON, display as plain text
+                        htmlOutput += formatValue(eventData.content);
+                    }
+                }
+                htmlOutput += `<br>--- Run Completed ---`;
+            } else {
+                // Fallback for any other event types - display non-empty fields
+                let fallbackContentAdded = false;
+                for (const key in eventData) {
+                    if (key !== 'event' && hasValue(eventData[key])) {
+                         const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Format key nicely
+                         htmlOutput += `<strong>${formattedKey}:</strong> ${formatValue(eventData[key])}<br>`;
+                         fallbackContentAdded = true;
+                    }
+                }
+                 if (fallbackContentAdded) contentAdded = true;
+            }
+
+            htmlOutput += `</div>`;
+
+            // Only append the event div if content was actually added
+            if (contentAdded) {
+                outputArea.innerHTML += htmlOutput; // Append the formatted HTML
+                outputArea.scrollTop = outputArea.scrollHeight; // Auto-scroll
+            }
+        }
+
+
+        sendButton.addEventListener('click', async () => {
+            const query = queryInput.value.trim();
+            if (!query) {
+                outputArea.textContent = 'Please enter a query.';
+                return;
+            }
+
+            outputArea.textContent = 'Sending query... Waiting for stream...\n\n'; // Clear previous output
+            sendButton.disabled = true; // Disable button during request
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/x-ndjson' // Expecting NDJSON stream
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                if (!response.ok) {
+                    // Handle HTTP errors (like 404, 500)
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! Status: ${response.status} - ${errorText || response.statusText}`);
+                }
+
+                if (!response.body) {
+                    throw new Error('Response body is null. Streaming not supported or failed.');
+                }
+
+                // Process the NDJSON stream
+                const reader = response.body.pipeThrough(new TextDecoderStream()).pipeThrough(new TransformStream({
+                    transform(chunk, controller) {
+                        // Split potentially concatenated JSON objects by newline
+                        const lines = (this.partialLine || "") + chunk;
+                        const jsonObjects = lines.split('\n');
+                        // Keep the last potentially incomplete line for the next chunk
+                        this.partialLine = jsonObjects.pop();
+                        // Enqueue each complete JSON object string
+                        jsonObjects.forEach(line => {
+                            if (line.trim()) { // Ensure line is not empty
+                                controller.enqueue(line);
+                            }
+                        });
+                    },
+                    flush(controller) {
+                        // Process any remaining partial line
+                        if (this.partialLine && this.partialLine.trim()) {
+                            controller.enqueue(this.partialLine);
+                        }
+                    }
+                }));
+
+                // Read and process each JSON object line
+                const streamReader = reader.getReader();
+                while (true) {
+                    const { done, value } = await streamReader.read();
+                    if (done) {
+                        // The RunCompleted event should handle the final message
+                        break;
+                    }
+                    try {
+                        const eventData = JSON.parse(value);
+                        displayEvent(eventData); // Display the structured event
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError, 'Received line:', value);
+                        outputArea.textContent += `\n\n<span class="error">Error parsing stream data: ${parseError.message}</span>\nData: ${value}\n`;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                // Use innerHTML carefully, ensure no user input is directly inserted without sanitization
+                outputArea.innerHTML += `<div class="error"><strong>Error fetching stream: ${error.message}</strong><br>Check the browser console and ensure the FastAPI server is running.</div>`;
+            } finally {
+                sendButton.disabled = false; // Re-enable button
+            }
+        });
+    </script>
+
+</body>
+</html>
