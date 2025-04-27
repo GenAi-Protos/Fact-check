@@ -20,16 +20,82 @@ interface FinalResult {
   verdict: string;
   explanation: string;
   confidence: number;
-  // citations might be part of the final event or collected separately
+  citations?: string[]; // Add optional citations if they come with the final result
 }
+
+// Type for categorized sources
+interface CategorizedSources {
+  [category: string]: Set<string>;
+}
+
 
 function App() {
   const [query, setQuery] = useState<string>('');
   const [events, setEvents] = useState<StreamEvent[]>([]);
   const [finalResult, setFinalResult] = useState<FinalResult | null>(null);
-  const [sourceUrls, setSourceUrls] = useState<Set<string>>(new Set());
+  // Use categorized sources state
+  const [sources, setSources] = useState<CategorizedSources>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper to add URLs to the categorized state
+  const addCategorizedUrl = (category: string, url: string) => {
+      setSources(prevSources => {
+          const newSources = { ...prevSources };
+          if (!newSources[category]) {
+              newSources[category] = new Set();
+          }
+          // Avoid adding duplicates within the category
+          if (!newSources[category].has(url)) {
+              newSources[category] = new Set(newSources[category]).add(url);
+          }
+          return newSources;
+      });
+  };
+
+  // --- Define Helper functions outside useCallback ---
+  const socialMediaDomains = ["twitter.com", "x.com", "facebook.com", "instagram.com", "reddit.com", "linkedin.com", "tiktok.com", "pinterest.com"];
+  const newsDomains = ["nytimes.com", "bbc.com", "reuters.com", "apnews.com", "thehindu.com", "indiatoday.in", "cnn.com", "wsj.com", "bloomberg.com", "cnbc.com", "aninews.in", "aajtak.in", "theguardian.com", "thetimesofindia.com", "thehindubusinessline.com", "theprint.in", "dinamalar.com"];
+  const videoDomains = ["youtube.com", "youtu.be", "vimeo.com"];
+
+  const getUrlCategory = (url: string): string => {
+      try {
+          const hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+          if (socialMediaDomains.some(domain => hostname.includes(domain))) return 'Social Media';
+          if (videoDomains.some(domain => hostname.includes(domain))) return 'Video';
+          if (newsDomains.some(domain => hostname.includes(domain))) return 'News Source';
+      } catch (e) { return 'General'; }
+      return 'General';
+  };
+
+  const findAndCategorizeUrls = useCallback((obj: any, sourceHint: string = 'Unknown Source') => {
+      if (!obj) return;
+      if (typeof obj === 'string') {
+          const urlRegex = /(https?:\/\/[^\s"'\)<>]+)/g;
+          const matches = obj.match(urlRegex);
+          if (matches) {
+              matches.forEach(url => {
+                  const category = getUrlCategory(url);
+                  addCategorizedUrl(category, url);
+              });
+          }
+      } else if (Array.isArray(obj)) {
+          obj.forEach(item => findAndCategorizeUrls(item, sourceHint));
+      } else if (typeof obj === 'object') {
+          let category = sourceHint;
+          if (obj.url && typeof obj.url === 'string') {
+              category = getUrlCategory(obj.url);
+              addCategorizedUrl(category, obj.url);
+          }
+          if (obj.source_url && typeof obj.source_url === 'string') {
+               category = getUrlCategory(obj.source_url);
+              addCategorizedUrl(category, obj.source_url);
+          }
+          Object.values(obj).forEach(value => findAndCategorizeUrls(value, category));
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dependencies might need adjustment if addCategorizedUrl changes identity, but likely stable
+
 
   const handleQuerySubmit = useCallback(async () => {
     if (!query.trim() || isLoading) return;
@@ -38,7 +104,7 @@ function App() {
     setError(null);
     setEvents([]);
     setFinalResult(null);
-    setSourceUrls(new Set());
+    setSources({}); // Reset categorized sources
 
     try {
       // Adjust URL if backend runs elsewhere
@@ -94,85 +160,41 @@ function App() {
             }
             // --- End Final Result Logic ---
 
-            // --- Logic to extract source URLs ---
-            const findUrlsInObject = (obj: any, urlSet: Set<string>) => {
-                if (!obj) return;
-                if (typeof obj === 'string') {
-                    // Basic URL regex - might need refinement
-                    const urlRegex = /(https?:\/\/[^\s"']+)/g;
-                    const matches = obj.match(urlRegex);
-                    if (matches) {
-                        matches.forEach(url => urlSet.add(url));
-                    }
-                } else if (Array.isArray(obj)) {
-                    obj.forEach(item => findUrlsInObject(item, urlSet));
-                } else if (typeof obj === 'object') {
-                    // Check for common 'url' or 'source_url' keys
-                    if (obj.url && typeof obj.url === 'string') urlSet.add(obj.url);
-                    if (obj.source_url && typeof obj.source_url === 'string') urlSet.add(obj.source_url);
-                    // Recursively check values
-                    Object.values(obj).forEach(value => findUrlsInObject(value, urlSet));
-                }
-            };
-
-            const tempUrls = new Set<string>();
-            // Check tool results (content field within tools array)
+            // --- Logic to extract and categorize source URLs ---
+             // Determine source hint based on event type and data
+             let sourceHint = 'General';
             if (eventData.event === 'ToolCallCompleted' && eventData.tools) {
-                 let toolList = eventData.tools;
-                 if (typeof toolList === 'string') {
-                     try {
-                         const correctedString = toolList.replace(/None/g, 'null').replace(/True/g, 'true').replace(/False/g, 'false').replace(/'/g, '"');
-                         toolList = JSON.parse(correctedString);
-                     } catch { toolList = []; }
-                 }
-                 if (Array.isArray(toolList)) {
-                     toolList.forEach((tool: any) => {
-                         if (tool.content) {
-                             try {
-                                 // Try parsing content if it's a JSON string
-                                 const contentObj = (typeof tool.content === 'string' && (tool.content.startsWith('{') || tool.content.startsWith('[')))
-                                     ? JSON.parse(tool.content)
-                                     : tool.content;
-                                 findUrlsInObject(contentObj, tempUrls);
-                             } catch (e) {
-                                 // If parsing fails, just check the raw string content
-                                 findUrlsInObject(tool.content, tempUrls);
-                             }
-                         }
-                     });
-                 }
-            }
-            // Check member responses
-            if (eventData.member_responses) {
-                 let memberResponsesList = eventData.member_responses;
-                  if (typeof memberResponsesList === 'string') {
-                     try {
-                         const correctedString = memberResponsesList.replace(/None/g, 'null').replace(/True/g, 'true').replace(/False/g, 'false').replace(/'/g, '"');
-                         memberResponsesList = JSON.parse(correctedString);
-                     } catch { memberResponsesList = []; }
-                 }
-                if (Array.isArray(memberResponsesList)) {
-                    memberResponsesList.forEach((resp: any) => {
-                        // Look in content and potentially nested structures
-                        findUrlsInObject(resp.content, tempUrls);
-                        findUrlsInObject(resp.messages, tempUrls); // Check messages too
+                let toolList = eventData.tools;
+                if (typeof toolList === 'string') { try { const correctedString = toolList.replace(/None/g, 'null').replace(/True/g, 'true').replace(/False/g, 'false').replace(/'/g, '"'); toolList = JSON.parse(correctedString); } catch { toolList = []; } }
+
+                if (Array.isArray(toolList)) {
+                    toolList.forEach((tool: any) => {
+                        sourceHint = tool.tool_name || 'Tool Result'; // Use tool name as hint
+                        if (tool.tool_args?.category) sourceHint = `${sourceHint} (${tool.tool_args.category})`; // Add category if present
+                        if (tool.content) {
+                            try {
+                                const contentObj = (typeof tool.content === 'string' && (tool.content.startsWith('{') || tool.content.startsWith('['))) ? JSON.parse(tool.content) : tool.content;
+                                findAndCategorizeUrls(contentObj, sourceHint);
+                            } catch (e) { findAndCategorizeUrls(tool.content, sourceHint); }
+                        }
                     });
                 }
+            } else if (eventData.member_responses) {
+                let memberResponsesList = eventData.member_responses;
+                if (typeof memberResponsesList === 'string') { try { const correctedString = memberResponsesList.replace(/None/g, 'null').replace(/True/g, 'true').replace(/False/g, 'false').replace(/'/g, '"'); memberResponsesList = JSON.parse(correctedString); } catch { memberResponsesList = []; } }
+
+                if (Array.isArray(memberResponsesList)) {
+                    memberResponsesList.forEach((resp: any) => {
+                        sourceHint = resp.agent_id || resp.name || 'Agent Response'; // Use agent name/ID as hint
+                        findAndCategorizeUrls(resp.content, sourceHint);
+                        findAndCategorizeUrls(resp.messages, sourceHint);
+                        findAndCategorizeUrls(resp.tools, sourceHint);
+                    });
+                }
+            } else if (typeof eventData.content === 'string') {
+                findAndCategorizeUrls(eventData.content, 'Stream Content');
             }
-            // Check direct content field if it's a string
-             if (typeof eventData.content === 'string') {
-                 findUrlsInObject(eventData.content, tempUrls);
-             }
-
-
-             if (tempUrls.size > 0) {
-                 setSourceUrls(prevUrls => {
-                     const newUrls = new Set(prevUrls);
-                     tempUrls.forEach(url => newUrls.add(url));
-                     return newUrls;
-                 });
-             }
-            // --- End URL Extraction Logic ---
+             // --- End URL Extraction Logic --- (Calls moved outside)
 
 
           } catch (parseError) {
@@ -186,15 +208,26 @@ function App() {
        if (accumulatedFinalContent) {
            try {
                const parsedFinal = JSON.parse(accumulatedFinalContent.trim());
-               // Assuming the final object matches FinalResult structure
                if (parsedFinal.claim && parsedFinal.verdict) {
-                   setFinalResult(parsedFinal as FinalResult);
+                   const finalData = parsedFinal as FinalResult;
+                   setFinalResult(finalData);
+                   // Process citations from the final result object itself, if present
+                   if (finalData.citations && Array.isArray(finalData.citations)) {
+                       finalData.citations.forEach(url => {
+                           if (typeof url === 'string') {
+                               const category = getUrlCategory(url); // Use function from outer scope
+                               addCategorizedUrl(category, url);
+                           }
+                       });
+                   }
                } else {
                    console.warn("Final accumulated content didn't match expected FinalResult structure:", parsedFinal);
+                   findAndCategorizeUrls(parsedFinal, 'Final Content (Malformed)'); // Use function from outer scope
                }
            } catch (finalParseError) {
                console.error("Error parsing final accumulated content:", finalParseError, "Content:", accumulatedFinalContent);
                setError("Failed to parse the final result from the stream.");
+               findAndCategorizeUrls(accumulatedFinalContent, 'Final Content (Unparsed)'); // Use function from outer scope
            }
        }
 
@@ -205,9 +238,9 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [query, isLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, isLoading, findAndCategorizeUrls]); // Add findAndCategorizeUrls to dependency array
 
-  // TODO: Implement rendering logic for events, finalResult, sourceUrls, error, isLoading
   return (
     <div className="app-container">
       <h1>Fact Check AI</h1>
@@ -244,17 +277,24 @@ function App() {
           <EventCard key={index} eventData={eventData} />
         ))}
 
-         {/* Render Source URLs */}
-         {sourceUrls.size > 0 && (
+         {/* Render Categorized Source URLs */}
+         {Object.keys(sources).length > 0 && (
             <div className="source-list">
-                <h4>Sources Found</h4>
-                <ul>
-                    {Array.from(sourceUrls).map((url, index) => (
+              <h4>Sources Found</h4>
+              {Object.entries(sources).map(([category, urls]) => (
+                urls.size > 0 && (
+                  <div key={category} style={{ marginBottom: '15px' }}>
+                    <h5>{category}</h5> {/* Display category name */}
+                    <ul>
+                      {Array.from(urls).map((url, index) => (
                         <li key={index}>
-                            <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
+                          <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
                         </li>
-                    ))}
-                </ul>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              ))}
             </div>
          )}
       </div>

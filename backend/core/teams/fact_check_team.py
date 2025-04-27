@@ -31,6 +31,8 @@ def create_fact_check_team():
             "Always use reasoning tool to make a decision",
             "Always use reasoning tool to combine the results of each subtask",
             "Always use reasoning tool to verify the results of each subtask",
+            "Try diffrent agents and tools to find the best solution",
+            "Always Use the social media agents atlest once",
             "Do not generate response until you have substantial information to identify the claim as fact or false",
             """EXTREMELY IMPORTANT - MULTIPLE CLAIMS:
             You MUST generate a separate JSON object for EACH claim in the input.
