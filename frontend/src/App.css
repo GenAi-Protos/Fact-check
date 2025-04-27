@@ -1,42 +1,120 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.query-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.query-form textarea {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-height: 50px;
+  resize: vertical;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.query-form button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.card {
-  padding: 2em;
+.query-form button:hover {
+  background-color: #0056b3;
 }
 
-.read-the-docs {
-  color: #888;
+.query-form button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.results-container {
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  min-height: 200px;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+.event-card {
+  border: 1px solid #ddd;
+  background-color: #fff;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.event-card h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.event-card pre {
+  background-color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto; /* Allow horizontal scrolling for long code/JSON */
+  font-size: 0.9em;
+}
+
+.final-result-card {
+  border: 2px solid #28a745; /* Green border for final result */
+  background-color: #e9f7ef;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 4px;
+}
+
+.source-list {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.source-list h4 {
+   margin-bottom: 5px;
+}
+
+.source-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.source-list li {
+  margin-bottom: 5px;
+}
+
+.source-list a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+.source-list a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #dc3545; /* Red color for errors */
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
