@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import ReactJson from 'react-json-view'; // Import react-json-view
+import CustomJsonViewer from './CustomJsonViewer'; // Import the custom component
 
 // Re-using the StreamEvent type, assuming it's defined elsewhere or passed as prop
 // If not, define it here:
@@ -50,31 +50,21 @@ const renderTools = (tools: any, eventType: string) => {
           {tool.tool_args && (
             <div>
               <strong>Args:</strong>
-              {/* Use ReactJson for tool args */}
-              <ReactJson
-                  src={tool.tool_args}
-                  name={null} // Hide the root name
-                  collapsed={1} // Collapse deeper levels by default
-                  enableClipboard={false}
-                  displayDataTypes={false}
-                  style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
-              />
+              {/* Use CustomJsonViewer for tool args */}
+              <div style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px', overflowX: 'auto' }}>
+                 <CustomJsonViewer src={tool.tool_args} />
+              </div>
             </div>
           )}
           {/* Render tool content/result only on ToolCallCompleted */}
           {eventType === 'ToolCallCompleted' && tool.content && (
             <div>
               <strong>Result:</strong>
-              {/* Try to parse content if it looks like JSON, use ReactJson, otherwise display as string */}
+              {/* Try to parse content if it looks like JSON, use CustomJsonViewer, otherwise display as string */}
               {(typeof tool.content === 'string' && (tool.content.startsWith('{') || tool.content.startsWith('['))) ? (
-                 <ReactJson
-                    src={JSON.parse(tool.content)} // Parse the string first
-                    name={null}
-                    collapsed={1}
-                    enableClipboard={false}
-                    displayDataTypes={false}
-                    style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
-                 />
+                 <div style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px', overflowX: 'auto' }}>
+                    <CustomJsonViewer src={JSON.parse(tool.content)} />
+                 </div>
               ) : (
                 <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginTop: '5px' }}>{String(tool.content)}</pre>
               )}
@@ -145,14 +135,9 @@ const EventCard: React.FC<EventCardProps> = ({ eventData }) => {
             <div>
                 <strong>Member Response(s):</strong>
                 {typeof responses === 'object' ? (
-                     <ReactJson
-                        src={responses}
-                        name={null}
-                        collapsed={1}
-                        enableClipboard={false}
-                        displayDataTypes={false}
-                        style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
-                     />
+                     <div style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px', overflowX: 'auto' }}>
+                        <CustomJsonViewer src={responses} />
+                     </div>
                 ) : (
                      <pre>{String(responses)}</pre> // Fallback to string
                 )}
