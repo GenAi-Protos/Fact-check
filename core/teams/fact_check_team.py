@@ -1,9 +1,7 @@
 from agno.team.team import Team
 from agno.models.aws import AwsBedrock
 from agno.tools.reasoning import ReasoningTools
-
 from services.agents.agent_factory import AgentFactory
-from models.schemas import FinalResponse
 from config import settings
 
 def create_fact_check_team():
@@ -45,14 +43,12 @@ def create_fact_check_team():
                     "claim": "First claim text",
                     "verdict": "True",
                     "explanation": "Explanation for first claim",
-                    "citations": ["url1", "url2"],
                     "confidence": 0.95
                 },
                 {
                     "claim": "Second claim text",
                     "verdict": "False",
                     "explanation": "Explanation for second claim",
-                    "citations": ["url3", "url4"],
                     "confidence": 0.85
                 }
             ]
@@ -63,7 +59,6 @@ def create_fact_check_team():
                 "claim": "The exact claim being verified",
                 "verdict": "True or False",
                 "explanation": "2-3 sentence explanation with evidence",
-                "citations": ["url1", "url2"],
                 "confidence": 0.95  // Number between 0 and 1
             }
             """,
@@ -76,6 +71,7 @@ def create_fact_check_team():
             AgentFactory.deep_research_agent,
             AgentFactory.web_search_agent,
             AgentFactory.news_search_agent,
+            AgentFactory.social_media_agent,
         ],
         add_datetime_to_instructions=True,
         add_member_tools_to_system_message=True,
@@ -84,16 +80,14 @@ def create_fact_check_team():
         share_member_interactions=True,
         show_members_responses=True,
         markdown=True,
-        response_model=FinalResponse,
-        show_tool_calls=False,
+        show_tool_calls=True,
         debug_mode=True,
         expected_output="""
         For a single claim:
         {
             "claim": "The factual claim that was extracted and verified",
-            "verdict": "True or False",
+            "verdict": "Fact or False",
             "explanation": "Brief rationale for the verdict based on evidence",
-            "citations": ["url1", "url2", "url3"],
             "confidence": 0.95
         }
         
@@ -103,14 +97,12 @@ def create_fact_check_team():
                 "claim": "First claim to be verified",
                 "verdict": "True",
                 "explanation": "Brief rationale for this verdict",
-                "citations": ["url1", "url2"],
                 "confidence": 0.95
             },
             {
                 "claim": "Second claim to be verified",
                 "verdict": "False",
                 "explanation": "Brief rationale for this verdict",
-                "citations": ["url3", "url4"],
                 "confidence": 0.9
             }
         ]

@@ -156,18 +156,19 @@ class FactChecker:
         intermediate_output = AgentFactory.structured_output_agent.run(processed_query).content
         
         # Run the fact-checking team on the extracted claims
-        output = fact_check_team.run(str(intermediate_output))
+        output = fact_check_team.run(str(intermediate_output),stream=True, stream_intermediate_steps=True)
         
         # Extract the citations from the member responses
-        citations = self._extract_citations(output.member_responses)
+        # citations = self._extract_citations(output.member_responses)
         
         # Parse and validate the response
-        parsed_response = self._parse_model_response(output.content)
+        # parsed_response = self._parse_model_response(output.content)
+        return output
         
-        return {
-            "response": parsed_response,
-            "citations": citations
-        }
+        # return {
+        #     "response": output,
+        #     # "citations": citations
+        # }
     
     async def process_query_async(self, query: str):
         """
@@ -194,6 +195,7 @@ class FactChecker:
                 self.process_query,  # Use the synchronous method
                 query
             )
+
             
         return result
     
