@@ -75,7 +75,7 @@ class AgentFactory:
         Summarize key developments, expert commentary, and real-world events related to the query.
         Keep your response factual, concise, and based solely on reporting from news organizations.
         Include dates and headlines when possible.
-        Always Return JSON SCHEMA
+        Always Return JSON object , Only json object no extra symbols , comments, or anything else apart from json object.
         """,
         show_tool_calls=False,
         markdown=True,
@@ -107,6 +107,9 @@ class AgentFactory:
         ],
         instructions=[
             "Carefully analyze the user's query to understand the specific information, topic, or sentiment they are asking about.",
+            "Go to different social media platforms to gather relevant information.",
+            "Have a broad search scope to cover a wide range of topics and perspectives.",
+            "Do not limit your search to a single platform or topic.",
             "Use the provided search tool to find relevant content across various social media platforms based on the user's query.",
             "Ensure your search covers multiple platforms from the available list (Twitter, Facebook, Instagram, YouTube, Reddit, LinkedIn, TikTok, Pinterest) to gather diverse perspectives and content types. Do not rely on just one or two platforms.",
             "Focus on identifying social media posts, discussions, videos, user profiles, or pages that directly relate to the query. Prioritize recent and relevant results.",
@@ -114,7 +117,8 @@ class AgentFactory:
             "Synthesize the findings from the different platforms searched. Summarize the key themes, viewpoints, public sentiment, or pieces of information discovered.",
             "Explicitly try to represent a variety of viewpoints or types of content found across the different social media sites in your summary.",
             "Structure your final response as a JSON object. This object should clearly present the synthesized findings, potentially categorizing them by platform or theme, and including relevant source links or identifiers returned by the tool.",
-            "Always Return JSON SCHEMA",
+            "Always Return JSON object , Only json object no extra symbols , comments, or anything else apart from json object."
+
         ],
         description="An AI fact-checking agent that  searches social media platforms for relevant information.",
         show_tool_calls=False,
@@ -168,8 +172,7 @@ class AgentFactory:
         "Always include specialized domain-specific sources when the query relates to technical fields",
         "Present results in categorized sections that highlight the diversity dimensions explored",
         "Always do breadth search across multiple topics rather than depth search on a single topic",
-        
-        "Always Return Results in JSON SCHEMA",
+        "Always Return JSON object , Only json object no extra symbols , comments, or anything else apart from json object."
     ],
         show_tool_calls=False,
         add_datetime_to_instructions=True,
