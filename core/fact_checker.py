@@ -153,10 +153,27 @@ class FactChecker:
             processed_query = f"{processed_query}\n" + "\n".join([item.get('text', '') for item in extracted_texts])
         
         # Extract claims from the processed query
-        intermediate_output = AgentFactory.structured_output_agent.run(processed_query).content
+        structured_response = AgentFactory.structured_output_agent.run(processed_query)
         
+        # Extract the actual claims list from the agent's response
+        # Assuming the agent returns an object with a 'claims' attribute which is a List[str]
+        # based on the ClaimsToBeVerified schema. Adjust if the actual return structure differs.
+        extracted_claims = []
+        if hasattr(structured_response.content, 'claims') and isinstance(structured_response.content.claims, list):
+             extracted_claims = structured_response.content.claims
+        elif isinstance(structured_response.content, list): # Fallback if content itself is the list
+             extracted_claims = structured_response.content
+        
+        if not extracted_claims:
+             # Handle case where no claims were extracted - maybe return an error or default response
+             # For now, let's pass an informative message to the team
+             team_input = "No specific claims were extracted from the input for fact-checking."
+        else:
+             # Format the claims for the fact_check_team. Joining them might be suitable.
+             team_input = "\n".join([f"Claim: {claim}" for claim in extracted_claims])
+
         # Run the fact-checking team on the extracted claims
-        output = fact_check_team.run(str(intermediate_output),stream=True, stream_intermediate_steps=True)
+        output = fact_check_team.run(team_input, stream=True, stream_intermediate_steps=True)
         
         # Extract the citations from the member responses
         # citations = self._extract_citations(output.member_responses)
