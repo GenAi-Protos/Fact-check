@@ -1,4 +1,7 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import ReactJson from 'react-json-view'; // Import react-json-view
 
 // Re-using the StreamEvent type, assuming it's defined elsewhere or passed as prop
 // If not, define it here:
@@ -47,18 +50,33 @@ const renderTools = (tools: any, eventType: string) => {
           {tool.tool_args && (
             <div>
               <strong>Args:</strong>
-              <pre>{JSON.stringify(tool.tool_args, null, 2)}</pre>
+              {/* Use ReactJson for tool args */}
+              <ReactJson
+                  src={tool.tool_args}
+                  name={null} // Hide the root name
+                  collapsed={1} // Collapse deeper levels by default
+                  enableClipboard={false}
+                  displayDataTypes={false}
+                  style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
+              />
             </div>
           )}
           {/* Render tool content/result only on ToolCallCompleted */}
           {eventType === 'ToolCallCompleted' && tool.content && (
             <div>
               <strong>Result:</strong>
-              {/* Try to parse content if it looks like JSON, otherwise display as string */}
+              {/* Try to parse content if it looks like JSON, use ReactJson, otherwise display as string */}
               {(typeof tool.content === 'string' && (tool.content.startsWith('{') || tool.content.startsWith('['))) ? (
-                <pre>{JSON.stringify(JSON.parse(tool.content), null, 2)}</pre>
+                 <ReactJson
+                    src={JSON.parse(tool.content)} // Parse the string first
+                    name={null}
+                    collapsed={1}
+                    enableClipboard={false}
+                    displayDataTypes={false}
+                    style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
+                 />
               ) : (
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{String(tool.content)}</pre>
+                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginTop: '5px' }}>{String(tool.content)}</pre>
               )}
             </div>
           )}
@@ -89,18 +107,23 @@ const EventCard: React.FC<EventCardProps> = ({ eventData }) => {
        case 'ReasoningStep':
          // Prefer reasoning_content (formatted markdown), fallback to content object
          if (reasoning_content) {
-            // Basic display, consider react-markdown for full rendering
-            return <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{reasoning_content}</pre>;
+            // Use ReactMarkdown to render
+            return <ReactMarkdown remarkPlugins={[remarkGfm]}>{reasoning_content}</ReactMarkdown>;
+         } else if (content && typeof content === 'object') {
+             // Display title/reasoning/action from the content object if reasoning_content is missing
+             const step = content; // Assuming content is the ReasoningStep object
+             return (
+                 <div>
+                     {step.title && <strong>{step.title}</strong>}
+                     {step.reasoning && <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{step.reasoning}</p>}
+                     {/* Display other parts of the step object if needed */}
+                     {step.action && <p><em>Action: {step.action}</em></p>}
+                     {step.result && <div><strong>Result:</strong> <pre>{JSON.stringify(step.result, null, 2)}</pre></div>}
+                 </div>
+             );
          } else if (content) {
-            // Display title/reasoning from the content object if reasoning_content is missing
-            const step = content; // Assuming content is the ReasoningStep object
-            return (
-                <div>
-                    {step.title && <strong>{step.title}</strong>}
-                    {step.reasoning && <p style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{step.reasoning}</p>}
-                    {step.action && <p><em>Action: {step.action}</em></p>}
-                </div>
-            );
+             // Fallback for non-object content in ReasoningStep
+             return <pre>{JSON.stringify(content, null, 2)}</pre>;
          }
          return <p>Processing reasoning step...</p>;
 
@@ -110,12 +133,29 @@ const EventCard: React.FC<EventCardProps> = ({ eventData }) => {
         return null; // Render nothing for these intermediate chunks
 
       case 'MemberResponse': // Assuming member_responses is in the eventData for this
-         // TODO: Refine based on actual member_responses structure - might be complex
-         // For now, just show the raw data
+         // Attempt to parse and display member responses using ReactJson
+         let responses = member_responses;
+         if (typeof responses === 'string') {
+             try {
+                 const correctedString = responses.replace(/None/g, 'null').replace(/True/g, 'true').replace(/False/g, 'false').replace(/'/g, '"');
+                 responses = JSON.parse(correctedString);
+             } catch (e) { /* Keep as string if parse fails */ }
+         }
          return (
             <div>
                 <strong>Member Response(s):</strong>
-                <pre>{JSON.stringify(member_responses, null, 2)}</pre>
+                {typeof responses === 'object' ? (
+                     <ReactJson
+                        src={responses}
+                        name={null}
+                        collapsed={1}
+                        enableClipboard={false}
+                        displayDataTypes={false}
+                        style={{ marginTop: '5px', backgroundColor: '#f8f8f8', padding: '5px', borderRadius: '3px' }}
+                     />
+                ) : (
+                     <pre>{String(responses)}</pre> // Fallback to string
+                )}
             </div>
          );
 
