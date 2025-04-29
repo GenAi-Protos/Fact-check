@@ -135,7 +135,11 @@ class AgentFactory:
                 api_key=settings.EXA_API_KEY,
                 text=False,
                 highlights=False,
-                model="exa-pro"
+                model="exa-pro",
+                summary  = False,
+                # get_contents=False , 
+                num_results=15,
+                answer=False
             )
         ],
         description="This is a deep search agent that performs diverse, comprehensive searches across multiple topics, domains, and perspectives",
