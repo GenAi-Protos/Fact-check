@@ -33,6 +33,10 @@ class IntermediateResponse(BaseModel):
 
 class Query(BaseModel):
     query: str = Field(..., description="The query or claim to be fact-checked")
+    x_link: Optional[str] = Field(default=None, description="Link to Twitter/X post to be fact-checked")
+    facebook_link: Optional[str] = Field(default=None, description="Link to Facebook post to be fact-checked")
+    instagram_link: Optional[str] = Field(default=None, description="Link to Instagram post to be fact-checked")
+    youtube_link: Optional[str] = Field(default=None, description="Link to YouTube video to be fact-checked")
 
 class FactCheckResponse(BaseModel):
     response: FinalResponse = Field(..., description="The detailed fact-check response")

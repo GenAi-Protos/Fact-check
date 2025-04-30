@@ -1,5 +1,6 @@
 from agno.team.team import Team
 from agno.models.aws import AwsBedrock
+from agno.models.openrouter import OpenRouter
 from agno.tools.reasoning import ReasoningTools
 from services.agents.agent_factory import AgentFactory
 from config import settings
@@ -10,12 +11,12 @@ def create_fact_check_team():
     fact_check_team = Team(
         name='Fact Checker Journalist',
         mode="coordinate",
-        model=AwsBedrock(
-            id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            aws_region=settings.AWS_REGION
-        ),
+        # model=AwsBedrock(
+        #     id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        #     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        #     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        #     aws_region=settings.AWS_REGION
+        model=OpenRouter(id="anthropic/claude-3.7-sonnet:thinking",api_key=settings.OPENROUTER_API_KEY),
         tools=[
             ReasoningTools(add_instructions=True)
         ],
@@ -83,7 +84,8 @@ def create_fact_check_team():
         show_members_responses=True,
         markdown=True,
         show_tool_calls=True,
-        debug_mode=True,
+        # debug_mode=True,
+
         expected_output="""
         For a single claim:
         {

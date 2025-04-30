@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 import json
 import collections.abc
-from models.schemas import Query, FactCheckResponse
+import os
+import uuid
+import shutil
+from typing import Optional
+from models.schemas import FactCheckResponse
 from core.fact_checker import FactChecker
 from fastapi.responses import StreamingResponse
 # Create the router
@@ -55,19 +59,37 @@ def get_fact_checker():
     return FactChecker()
 
 @router.post("/ask", response_model=FactCheckResponse)
-async def ask_query(query: Query, fact_checker: FactChecker = Depends(get_fact_checker)):
+async def ask_query(
+    query: str = Form(...),
+    x_link: Optional[str] = Form(None),
+    facebook_link: Optional[str] = Form(None),
+    instagram_link: Optional[str] = Form(None),
+    youtube_link: Optional[str] = Form(None),
+    image_file: Optional[UploadFile] = File(None),
+    video_file: Optional[UploadFile] = File(None),
+    fact_checker: FactChecker = Depends(get_fact_checker)
+):
     """
     Fact check a query asynchronously
     
     Args:
-        query: The query model containing the text to fact-check
+        query: The text query or claim to fact-check
+        x_link: Optional Twitter/X post link
+        facebook_link: Optional Facebook post link
+        instagram_link: Optional Instagram post link
+        youtube_link: Optional YouTube video link
+        image_file: Optional image file to analyze
+        video_file: Optional video file to analyze
         
     Returns:
         FactCheckResponse containing the fact-checked claims and citations
     """
-    async def stream_agent_response_json(query: str):
+    async def stream_agent_response_json():
     
-        result = await fact_checker.process_query_async(query)
+        result = await fact_checker.process_query_async(
+            query, x_link, facebook_link, instagram_link, 
+            youtube_link, image_file, video_file
+        )
         for chunk in result:
             try:
                 # Convert the Agno response object (likely Pydantic) to a dict, then to JSON
@@ -102,4 +124,4 @@ async def ask_query(query: Query, fact_checker: FactChecker = Depends(get_fact_c
                 except Exception as json_err:
                     error_message = json.dumps({"event": "StreamError", "error": "Failed to serialize error message", "original_error": str(e)})
                 yield f"{error_message}\n".encode('utf-8')
-    return StreamingResponse(stream_agent_response_json(query.query), media_type="application/x-ndjson")
+    return StreamingResponse(stream_agent_response_json(), media_type="application/x-ndjson")

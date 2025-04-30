@@ -31,12 +31,42 @@ interface CategorizedSources {
 
 function App() {
   const [query, setQuery] = useState<string>('');
+  const [xLink, setXLink] = useState<string>('');
+  const [facebookLink, setFacebookLink] = useState<string>('');
+  const [instagramLink, setInstagramLink] = useState<string>('');
+  const [youtubeLink, setYoutubeLink] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [events, setEvents] = useState<StreamEvent[]>([]);
   const [finalResult, setFinalResult] = useState<FinalResult | null>(null);
   // Use categorized sources state
   const [sources, setSources] = useState<CategorizedSources>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // File input handlers
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setVideoFile(e.target.files[0]);
+    }
+  };
+  
+  // Reset all form inputs
+  const resetForm = () => {
+    setQuery('');
+    setXLink('');
+    setFacebookLink('');
+    setInstagramLink('');
+    setYoutubeLink('');
+    setImageFile(null);
+    setVideoFile(null);
+  };
 
   // Helper to add URLs to the categorized state
   const addCategorizedUrl = (category: string, url: string) => {
@@ -98,7 +128,8 @@ function App() {
 
 
   const handleQuerySubmit = useCallback(async () => {
-    if (!query.trim() || isLoading) return;
+    if ((!query.trim() && !xLink && !facebookLink && !instagramLink && !youtubeLink && 
+         !imageFile && !videoFile) || isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -107,14 +138,28 @@ function App() {
     setSources({}); // Reset categorized sources
 
     try {
+      // Create FormData for multipart/form-data
+      const formData = new FormData();
+      formData.append('query', query);
+      
+      // Append social media links if provided
+      if (xLink) formData.append('x_link', xLink);
+      if (facebookLink) formData.append('facebook_link', facebookLink);
+      if (instagramLink) formData.append('instagram_link', instagramLink);
+      if (youtubeLink) formData.append('youtube_link', youtubeLink);
+      
+      // Append files if provided
+      if (imageFile) formData.append('image_file', imageFile);
+      if (videoFile) formData.append('video_file', videoFile);
+      
       // Adjust URL if backend runs elsewhere
       const response = await fetch('http://localhost:8000/fact-check/ask', {
         method: 'POST',
+        // Don't set Content-Type header, browser will set it with proper boundary
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/x-ndjson', // Expect ndjson
         },
-        body: JSON.stringify({ query: query }),
+        body: formData
       });
 
       if (!response.ok) {
@@ -239,7 +284,7 @@ function App() {
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, isLoading, findAndCategorizeUrls]); // Add findAndCategorizeUrls to dependency array
+  }, [query, xLink, facebookLink, instagramLink, youtubeLink, imageFile, videoFile, isLoading, findAndCategorizeUrls]);
 
   return (
     <div className="app-container">
@@ -253,7 +298,65 @@ function App() {
           rows={3}
           disabled={isLoading}
         />
-        <button onClick={handleQuerySubmit} disabled={isLoading}>
+        
+        <div className="link-inputs">
+          <input
+            type="text"
+            value={xLink}
+            onChange={(e) => setXLink(e.target.value)}
+            placeholder="Twitter/X Link (optional)"
+            disabled={isLoading}
+          />
+          <input
+            type="text"
+            value={facebookLink}
+            onChange={(e) => setFacebookLink(e.target.value)}
+            placeholder="Facebook Link (optional)"
+            disabled={isLoading}
+          />
+          <input
+            type="text"
+            value={instagramLink}
+            onChange={(e) => setInstagramLink(e.target.value)}
+            placeholder="Instagram Link (optional)"
+            disabled={isLoading}
+          />
+          <input
+            type="text"
+            value={youtubeLink}
+            onChange={(e) => setYoutubeLink(e.target.value)}
+            placeholder="YouTube Link (optional)"
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="file-inputs">
+          <div className="file-input">
+            <label htmlFor="image-upload">Upload Image:</label>
+            <input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={isLoading}
+            />
+            {imageFile && <span className="file-name">{imageFile.name}</span>}
+          </div>
+          
+          <div className="file-input">
+            <label htmlFor="video-upload">Upload Video:</label>
+            <input
+              id="video-upload"
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              disabled={isLoading}
+            />
+            {videoFile && <span className="file-name">{videoFile.name}</span>}
+          </div>
+        </div>
+        
+        <button className="submit-button" onClick={handleQuerySubmit} disabled={isLoading}>
           {isLoading ? 'Checking...' : 'Check Fact'}
         </button>
       </div>

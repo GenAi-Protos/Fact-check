@@ -3,7 +3,7 @@ name = "fact-check"
 version = "0.1.0"
 description = "This is a project for fact checking"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11.9"
 dependencies = [
     "agno>=0.1.0",
     "boto3>=1.28.0",
@@ -19,4 +19,5 @@ dependencies = [
     "starlette>=0.27.0",
     "tavily-python>=0.7.0",
     "uvicorn>=0.23.0",
+    "youtube-transcript-api>=1.0.3",
 ]
