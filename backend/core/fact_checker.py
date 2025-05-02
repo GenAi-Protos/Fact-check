@@ -1,3 +1,4 @@
+import api.routes
 import json
 import re
 import os
@@ -11,7 +12,7 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
 from utils.extractors import ContentExtractor
 from services.agents.agent_factory import AgentFactory
-from core.teams.fact_check_team import fact_check_team
+from core.teams.fact_check_team import create_fact_check_team
 from models.schemas import IntermediateResponse, FinalResponse, FinalSteps
 
 
@@ -182,6 +183,7 @@ class FactChecker:
              team_input = "\n".join([f"Claim: {claim}" for claim in extracted_claims])
 
         # Run the fact-checking team on the extracted claims
+        fact_check_team = create_fact_check_team()
         output = fact_check_team.run(team_input, stream=True, stream_intermediate_steps=True)
         
         # Extract the citations from the member responses
@@ -324,7 +326,7 @@ class FactChecker:
                     print(f"Error removing temporary file {file_path}: {str(e)}")
     
     def process_query(self, query: str, x_link=None, facebook_link=None, instagram_link=None,
-                     youtube_link=None, image_file=None, video_file=None):
+                     youtube_link=None, image_file=None, video_file=None,generic_link=None):
         """
         Process a query synchronously with multiple input types, extract claims and fact-check them
         
@@ -358,6 +360,7 @@ class FactChecker:
         if youtube_link: input_sources.append(f"YouTube link: {youtube_link}")
         if image_file: input_sources.append(f"Image file: {image_file.filename}")
         if video_file: input_sources.append(f"Video file: {video_file.filename}")
+        if generic_link: input_sources.append(f"Generic link: {generic_link}")
         
         print(f"Processing {len(input_sources)} input source(s):")
         for src in input_sources:
@@ -407,6 +410,11 @@ class FactChecker:
                 social_links.append(facebook_link)
             if instagram_link:
                 social_links.append(instagram_link)
+            if generic_link:
+                social_links.append(generic_link)
+            if youtube_link:
+                social_links.append(youtube_link)
+
             
             if social_links:
                 print(f"\nProcessing {len(social_links)} social media link(s):")
@@ -502,6 +510,8 @@ class FactChecker:
             print("-"*40)
             print(team_input)
             print("-"*80)
+            fact_check_team=create_fact_check_team(additional_context=f"These are the references from the user\n\n {input_sources}")
+            print("Social Links",input_sources)
             
             # Updated to handle OpenRouter model (previously AWS Bedrock)
             output = fact_check_team.run(team_input, stream=True, stream_intermediate_steps=True)
@@ -517,7 +527,7 @@ class FactChecker:
             self._cleanup_temp_files(*temp_files)
     
     async def process_query_async(self, query: str, x_link=None, facebook_link=None, instagram_link=None,
-                                youtube_link=None, image_file=None, video_file=None):
+                                youtube_link=None, image_file=None, video_file=None,generic_link=None):
         """
         Process a query asynchronously with multiple input types, extract claims and fact-check them
         
@@ -547,7 +557,7 @@ class FactChecker:
                 pool, 
                 lambda: self.process_query(
                     query, x_link, facebook_link, instagram_link,
-                    youtube_link, image_file, video_file
+                    youtube_link, image_file, video_file,generic_link
                 )
             )
             

@@ -111,11 +111,12 @@ class ContentExtractor:
         
         elif "facebook.com" in domain or "instagram.com" in domain:
             # For simplicity just returning domain name, but could implement specific extractors
-            return {'text': f"Content from {domain}"}
+            return ContentExtractor.extract_news_and_generic_links(url)
+            # return {'text': f"Content from {domain}"}
         
-        elif "youtube.com" in domain or "youtu.be" in domain:
-            # For YouTube, just return the URL as processing video content is complex
-            return {'text': url}
+        # elif "youtube.com" in domain or "youtu.be" in domain:
+        #     # For YouTube, just return the URL as processing video content is complex
+        #     return {'text': url}
         
         else:
             return ContentExtractor.extract_news_and_generic_links(url)

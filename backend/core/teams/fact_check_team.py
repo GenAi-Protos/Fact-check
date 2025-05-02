@@ -5,7 +5,7 @@ from agno.tools.reasoning import ReasoningTools
 from services.agents.agent_factory import AgentFactory
 from config import settings
 
-def create_fact_check_team():
+def create_fact_check_team(additional_context:str=""):
     """Create and configure the fact-checking team of AI agents"""
     
     fact_check_team = Team(
@@ -84,6 +84,9 @@ def create_fact_check_team():
         show_members_responses=True,
         markdown=True,
         show_tool_calls=True,
+        additional_context=additional_context,
+        debug_mode=True,
+        
         # debug_mode=True,
 
         expected_output="""
@@ -116,4 +119,4 @@ def create_fact_check_team():
     return fact_check_team
 
 # Create a singleton instance
-fact_check_team = create_fact_check_team()
+# fact_check_team = create_fact_check_team()

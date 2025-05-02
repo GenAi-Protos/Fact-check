@@ -65,6 +65,7 @@ async def ask_query(
     facebook_link: Optional[str] = Form(None),
     instagram_link: Optional[str] = Form(None),
     youtube_link: Optional[str] = Form(None),
+    generic_link: Optional[str] = Form(None),
     image_file: Optional[UploadFile] = File(None),
     video_file: Optional[UploadFile] = File(None),
     fact_checker: FactChecker = Depends(get_fact_checker)
@@ -88,7 +89,7 @@ async def ask_query(
     
         result = await fact_checker.process_query_async(
             query, x_link, facebook_link, instagram_link, 
-            youtube_link, image_file, video_file
+            youtube_link, image_file, video_file,generic_link
         )
         for chunk in result:
             try:

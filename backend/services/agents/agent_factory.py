@@ -43,8 +43,8 @@ class AgentFactory:
     )
 
     news_search_agent = Agent(
-        name="News Searcher",
-        model=OpenAIChat(id="gpt-4o-mini"),
+        name="News Sx   earcher",
+        model=OpenAIChat(id="gpt-4.1-mini"),
         tools=[
             ExaTools(
                 include_domains=[
