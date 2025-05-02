@@ -26,6 +26,7 @@ class AgentFactory:
         response_model=ClaimsToBeVerified,
         add_datetime_to_instructions=True,
     )
+    
 
     web_search_agent = Agent(
         name="Web Searcher",
@@ -39,7 +40,9 @@ class AgentFactory:
         instructions="Always Return JSON SCHEMA",
         show_tool_calls=False,
         markdown=True,
-        add_datetime_to_instructions=True
+        add_datetime_to_instructions=True,
+        retries=20,
+        exponential_backoff=True
     )
 
     news_search_agent = Agent(
@@ -80,7 +83,9 @@ class AgentFactory:
         show_tool_calls=False,
         markdown=True,
         add_datetime_to_instructions=True,
-        use_json_mode=True
+        use_json_mode=True,
+        retries=20,
+        exponential_backoff=True
     )
 
     social_media_agent = Agent(
@@ -123,7 +128,9 @@ class AgentFactory:
         description="An AI fact-checking agent that  searches social media platforms for relevant information.",
         show_tool_calls=False,
         add_datetime_to_instructions=True,
-        use_json_mode=True
+        use_json_mode=True,
+        retries=20,
+        exponential_backoff=True
     )
 
     deep_research_agent = Agent(
@@ -180,6 +187,8 @@ class AgentFactory:
     ],
         show_tool_calls=False,
         add_datetime_to_instructions=True,
-        use_json_mode=True
+        use_json_mode=True,
+        retries=20,
+        exponential_backoff=True
     )
     # Additional agents can be added here as needed

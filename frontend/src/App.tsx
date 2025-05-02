@@ -35,6 +35,7 @@ function App() {
   const [facebookLink, setFacebookLink] = useState<string>('');
   const [instagramLink, setInstagramLink] = useState<string>('');
   const [youtubeLink, setYoutubeLink] = useState<string>('');
+  const [genericLink, setGenericLink] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [events, setEvents] = useState<StreamEvent[]>([]);
@@ -64,6 +65,7 @@ function App() {
     setFacebookLink('');
     setInstagramLink('');
     setYoutubeLink('');
+    setGenericLink('');
     setImageFile(null);
     setVideoFile(null);
   };
@@ -147,6 +149,7 @@ function App() {
       if (facebookLink) formData.append('facebook_link', facebookLink);
       if (instagramLink) formData.append('instagram_link', instagramLink);
       if (youtubeLink) formData.append('youtube_link', youtubeLink);
+      if (genericLink) formData.append('generic_link', genericLink);
       
       // Append files if provided
       if (imageFile) formData.append('image_file', imageFile);
@@ -284,7 +287,7 @@ function App() {
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, xLink, facebookLink, instagramLink, youtubeLink, imageFile, videoFile, isLoading, findAndCategorizeUrls]);
+  }, [query, xLink, facebookLink, instagramLink, youtubeLink, genericLink, imageFile, videoFile, isLoading, findAndCategorizeUrls]);
 
   return (
     <div className="app-container">
@@ -326,6 +329,13 @@ function App() {
             value={youtubeLink}
             onChange={(e) => setYoutubeLink(e.target.value)}
             placeholder="YouTube Link (optional)"
+            disabled={isLoading}
+          />
+          <input
+            type="text"
+            value={genericLink}
+            onChange={(e) => setGenericLink(e.target.value)}
+            placeholder="Generic Link (optional)"
             disabled={isLoading}
           />
         </div>
