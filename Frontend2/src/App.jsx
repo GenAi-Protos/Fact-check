@@ -24,12 +24,14 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import AddIcon from '@mui/icons-material/Add';
+import AttachmentIcon from '@mui/icons-material/Attachment';
 import genAIIcon from './assets/genAI_icon.png';
 import genAILogo from './assets/genaiLogo.png';
 import './App.css';
@@ -65,15 +67,18 @@ function App() {
   const [imageFile, setImageFile] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [openPopup, setOpenPopup] = useState(false);
+  const [claims, setClaims] = useState([]);
+  const [selectedClaims, setSelectedClaims] = useState([]);
+  const [openClaimsDialog, setOpenClaimsDialog] = useState(false);
 
-  const addCategorizedUrl = (category, url) => {
+  const addCategorizedUrl = (category, url, title = 'Untitled') => {
     setSources((prevSources) => {
       const newSources = { ...prevSources };
       if (!newSources[category]) {
-        newSources[category] = new Set();
+        newSources[category] = [];
       }
-      if (!newSources[category].has(url)) {
-        newSources[category] = new Set(newSources[category]).add(url);
+      if (!newSources[category].some((item) => item.url === url)) {
+        newSources[category].push({ url, title });
       }
       return newSources;
     });
@@ -129,11 +134,13 @@ function App() {
         let category = sourceHint;
         if (obj.url && typeof obj.url === 'string') {
           category = getUrlCategory(obj.url);
-          addCategorizedUrl(category, obj.url);
+          const title = obj.title || obj.page_title || obj.name || 'Untitled';
+          addCategorizedUrl(category, obj.url, title);
         }
         if (obj.source_url && typeof obj.source_url === 'string') {
           category = getUrlCategory(obj.source_url);
-          addCategorizedUrl(category, obj.source_url);
+          const title = obj.title || obj.page_title || obj.name || 'Untitled';
+          addCategorizedUrl(category, obj.source_url, title);
         }
         Object.values(obj).forEach((value) => findAndCategorizeUrls(value, category));
       }
@@ -141,7 +148,48 @@ function App() {
     [],
   );
 
-  const handleQuerySubmit = useCallback(async () => {
+  // Utility function to render content, handling JSON objects
+  const renderContent = (content) => {
+    if (!content) return 'No content provided';
+    if (typeof content === 'string') {
+      try {
+        const parsed = JSON.parse(content);
+        return (
+          <pre
+            style={{
+              backgroundColor: '#f5f5f5',
+              padding: '10px',
+              borderRadius: '4px',
+              overflowX: 'auto',
+              fontSize: '14px',
+            }}
+          >
+            {JSON.stringify(parsed, null, 2)}
+          </pre>
+        );
+      } catch (e) {
+        return content;
+      }
+    }
+    if (typeof content === 'object') {
+      return (
+        <pre
+          style={{
+            backgroundColor: '#f5f5f5',
+            padding: '10px',
+            borderRadius: '4px',
+            overflowX: 'auto',
+            fontSize: '14px',
+          }}
+        >
+          {JSON.stringify(content, null, 2)}
+        </pre>
+      );
+    }
+    return String(content);
+  };
+
+  const handleExtractClaims = useCallback(async () => {
     if (
       !query.trim() &&
       !xLink.trim() &&
@@ -152,19 +200,12 @@ function App() {
       !imageFile &&
       !videoFile
     ) {
-      setError('Please provide at least one input to verify.');
+      setError('Please provide at least one input to extract claims.');
       return;
     }
 
-    if (isLoading) return;
-
-    setShowResults(true);
     setIsLoading(true);
     setError(null);
-    setEvents([]);
-    setFinalResult(null);
-    setParsedResult(null);
-    setSources({});
 
     try {
       const formData = new FormData();
@@ -177,12 +218,52 @@ function App() {
       if (imageFile) formData.append('imageFile', imageFile);
       if (videoFile) formData.append('videoFile', videoFile);
 
+      const response = await fetch('http://localhost:8000/fact-check/extract-claims', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.event === 'ClaimsExtracted' && data.claims) {
+        setClaims(data.claims);
+        setOpenClaimsDialog(true);
+      } else {
+        throw new Error('Invalid response format from extract-claims API');
+      }
+    } catch (err) {
+      console.error('Extract claims failed:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [query, xLink, facebookLink, instagramLink, youtubeLink, genericLink, imageFile, videoFile]);
+
+  const handleClaimsSubmit = useCallback(async () => {
+    if (selectedClaims.length === 0) {
+      setError('Please select at least one claim to verify.');
+      return;
+    }
+      setOpenClaimsDialog(false);
+    setIsLoading(true);
+    setError(null);
+    setShowResults(true);
+    setEvents([]);
+    setFinalResult(null);
+    setParsedResult(null);
+    setSources({});
+
+    try {
       const response = await fetch('http://localhost:8000/fact-check/ask', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           Accept: 'application/x-ndjson',
         },
-        body: formData,
+        body: JSON.stringify({ claims: selectedClaims }),
       });
 
       if (!response.ok) {
@@ -302,23 +383,44 @@ function App() {
       if (accumulatedFinalContent) {
         try {
           const parsedFinal = JSON.parse(accumulatedFinalContent.trim());
-          if (parsedFinal.claim && parsedFinal.verdict) {
-            setFinalResult(parsedFinal);
-            setParsedResult(parsedFinal);
-            if (parsedFinal.citations && Array.isArray(parsedFinal.citations)) {
-              parsedFinal.citations.forEach((url) => {
+          let normalizedResult;
+          if (parsedFinal.findings || parsedFinal.source_links) {
+            normalizedResult = {
+              claim: selectedClaims.join(', '),
+              verdict: 'Unknown',
+              explanation: JSON.stringify(parsedFinal, null, 2),
+              confidence: 0,
+            };
+          } else if (parsedFinal.claim && parsedFinal.verdict) {
+            normalizedResult = parsedFinal;
+          } else {
+            normalizedResult = {
+              claim: selectedClaims.join(', '),
+              verdict: 'Unknown',
+              explanation: JSON.stringify(parsedFinal, null, 2),
+              confidence: 0,
+            };
+          }
+          setFinalResult(parsedFinal);
+          setParsedResult(normalizedResult);
+          if (parsedFinal.citations && Array.isArray(parsedFinal.citations)) {
+            parsedFinal.citations.forEach((url) => {
+              if (typeof url === 'string') {
+                const category = getUrlCategory(url);
+                addCategorizedUrl(category, url);
+              }
+            });
+          }
+          if (parsedFinal.source_links) {
+            Object.entries(parsedFinal.source_links).forEach(([platform, links]) => {
+              const urls = Array.isArray(links) ? links : [links];
+              urls.forEach((url) => {
                 if (typeof url === 'string') {
                   const category = getUrlCategory(url);
-                  addCategorizedUrl(category, url);
+                  addCategorizedUrl(category, url, `${platform} Link`);
                 }
               });
-            }
-          } else {
-            console.warn(
-              "Final accumulated content didn't match expected FinalResult structure:",
-              parsedFinal
-            );
-            findAndCategorizeUrls(parsedFinal, 'Final Content (Malformed)');
+            });
           }
         } catch (finalParseError) {
           console.error(
@@ -328,6 +430,12 @@ function App() {
             accumulatedFinalContent
           );
           setError('Failed to parse the final result from the stream.');
+          setParsedResult({
+            claim: selectedClaims.join(', '),
+            verdict: 'Unknown',
+            explanation: accumulatedFinalContent,
+            confidence: 0,
+          });
           findAndCategorizeUrls(
             accumulatedFinalContent,
             'Final Content (Unparsed)'
@@ -335,20 +443,25 @@ function App() {
         }
       } else {
         console.warn('No accumulated final content received from the stream.');
+        setParsedResult({
+          claim: selectedClaims.join(', '),
+          verdict: 'Unknown',
+          explanation: 'No results received from the server.',
+          confidence: 0,
+        });
       }
     } catch (err) {
       console.error('API call failed:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setParsedResult({
+        claim: selectedClaims.join(', '),
+        verdict: 'Unknown',
+        explanation: 'An error occurred while fetching results.',
+        confidence: 0,
+      });
     } finally {
       setIsLoading(false);
-      setSearchedQuery(
-        query ||
-        xLink ||
-        facebookLink ||
-        instagramLink ||
-        youtubeLink ||
-        genericLink
-      );
+      setSearchedQuery(selectedClaims.join(', '));
       setQuery('');
       setXLink('');
       setFacebookLink('');
@@ -357,19 +470,23 @@ function App() {
       setGenericLink('');
       setImageFile(null);
       setVideoFile(null);
+      setOpenClaimsDialog(false);
+      setClaims([]);
+      setSelectedClaims([]);
     }
-  }, [
-    query,
-    xLink,
-    facebookLink,
-    instagramLink,
-    youtubeLink,
-    genericLink,
-    imageFile,
-    videoFile,
-    isLoading,
-    findAndCategorizeUrls,
-  ]);
+  }, [selectedClaims, findAndCategorizeUrls]);
+
+  const handleQuerySubmit = useCallback(() => {
+    handleExtractClaims();
+  }, [handleExtractClaims]);
+
+  const handleClaimSelection = (claim) => {
+    setSelectedClaims((prev) =>
+      prev.includes(claim)
+        ? prev.filter((c) => c !== claim)
+        : [...prev, claim]
+    );
+  };
 
   const getDisplayEventName = (eventData) => {
     if (eventData.reasoning_content) {
@@ -438,13 +555,13 @@ function App() {
   };
 
   const totalLinks = Object.values(sources).reduce(
-    (sum, urlSet) => sum + urlSet.size,
+    (sum, items) => sum + items.length,
     0
   );
-  const allUrls = Object.values(sources).flatMap((urlSet) => [...urlSet]);
-  const faviconUrls = allUrls.slice(0, 3);
+  const allUrls = Object.values(sources).flatMap((items) => items);
+  const faviconUrls = allUrls.slice(0, 3).map((item) => item.url);
   const displayedUrls = selectedCategory
-    ? [...(sources[selectedCategory] || [])]
+    ? sources[selectedCategory] || []
     : allUrls;
 
   return (
@@ -504,7 +621,7 @@ function App() {
                                 onClick={() => setOpenPopup(true)}
                                 sx={{ color: '#6C757D', p: '8px' }}
                               >
-                                <AddIcon />
+                                <AttachmentIcon />
                               </IconButton>
                             </Tooltip>
                             <Button
@@ -624,6 +741,68 @@ function App() {
             sx={{ backgroundColor: '#0D6EFD', color: '#FFFFFF', textTransform: 'none' }}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openClaimsDialog}
+        onClose={() => setOpenClaimsDialog(false)}
+        maxWidth="md"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { backgroundColor: '#FFFFFF', color: '#212529', p: 2 } }}
+      >
+        <DialogTitle>
+          Select Claims to Verify
+          <IconButton
+            onClick={() => setOpenClaimsDialog(false)}
+            sx={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              color: '#6C757D',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
+            {claims.length === 0 ? (
+              <Typography variant="body2" sx={{ color: '#6C757D' }}>
+                No claims extracted.
+              </Typography>
+            ) : (
+              claims.map((claim, index) => (
+                <FormControlLabel
+                  key={index}
+                  control={
+                    <Checkbox
+                      checked={selectedClaims.includes(claim)}
+                      onChange={() => handleClaimSelection(claim)}
+                      sx={{ color: '#0D6EFD', '&.Mui-checked': { color: '#0D6EFD' } }}
+                    />
+                  }
+                  label={claim}
+                  sx={{ alignItems: 'flex-start', '& .MuiFormControlLabel-label': { mt: 1 } }}
+                />
+              ))
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenClaimsDialog(false)}
+            sx={{ color: '#6C757D', textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleClaimsSubmit}
+            variant="contained"
+            disabled={selectedClaims.length === 0 || isLoading}
+            sx={{ backgroundColor: '#0D6EFD', color: '#FFFFFF', textTransform: 'none' }}
+          >
+            Verify Selected Claims
           </Button>
         </DialogActions>
       </Dialog>
@@ -802,12 +981,12 @@ function App() {
                     width: 600,
                     backgroundColor: '#FFFFFF',
                     color: '#212529',
-                    p: 2,
+                    padding: 2,
                     borderLeft: '1px solid #DEE2E6',
                   },
                 }}
               >
-                <Box sx={{ p: 2, position: 'relative' }}>
+                <Box sx={{ padding: 2, position: 'relative' }}>
                   <IconButton
                     onClick={() => {
                       setOpenDrawer(false);
@@ -822,28 +1001,22 @@ function App() {
                   >
                     <CloseIcon />
                   </IconButton>
-                  <Typography variant="h6" sx={{ mb: 2, color: '#212529' }}>
+                  <Typography variant="h6" sx={{ marginBottom: 2, color: '#212529' }}>
                     Source Links
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, marginBottom: 2 }}>
                     <Button
                       onClick={() => setSelectedCategory(null)}
                       sx={{
-                        backgroundColor:
-                          selectedCategory === null ? '#0D6EFD' : '#E9ECEF',
-                        color:
-                          selectedCategory === null ? '#FFFFFF' : '#212529',
-                        border:
-                          selectedCategory !== null
-                            ? '1px solid #DEE2E6'
-                            : 'none',
+                        backgroundColor: selectedCategory === null ? '#0D6EFD' : '#E9ECEF',
+                        color: selectedCategory === null ? '#FFFFFF' : '#212529',
+                        border: selectedCategory !== null ? '1px solid #DEE2E6' : 'none',
                         borderRadius: '16px',
                         padding: '4px 12px',
                         textTransform: 'none',
                         fontSize: '12px',
                         '&:hover': {
-                          backgroundColor:
-                            selectedCategory === null ? '#0B5ED7' : '#DEE2E6',
+                          backgroundColor: selectedCategory === null ? '#0B5ED7' : '#DEE2E6',
                         },
                       }}
                     >
@@ -854,27 +1027,15 @@ function App() {
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         sx={{
-                          backgroundColor:
-                            selectedCategory === category
-                              ? '#0D6EFD'
-                              : '#E9ECEF',
-                          color:
-                            selectedCategory === category
-                              ? '#FFFFFF'
-                              : '#212529',
-                          border:
-                            selectedCategory !== category
-                              ? '1px solid #DEE2E6'
-                              : 'none',
+                          backgroundColor: selectedCategory === category ? '#0D6EFD' : '#E9ECEF',
+                          color: selectedCategory === category ? '#FFFFFF' : '#212529',
+                          border: selectedCategory !== category ? '1px solid #DEE2E6' : 'none',
                           borderRadius: '16px',
                           padding: '4px 12px',
                           textTransform: 'none',
                           fontSize: '12px',
                           '&:hover': {
-                            backgroundColor:
-                              selectedCategory === category
-                                ? '#0B5ED7'
-                                : '#DEE2E6',
+                            backgroundColor: selectedCategory === category ? '#0B5ED7' : '#DEE2E6',
                           },
                         }}
                       >
@@ -882,61 +1043,60 @@ function App() {
                       </Button>
                     ))}
                   </Box>
-                  <List sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     {displayedUrls.length === 0 ? (
                       <Typography variant="body2" sx={{ color: '#6C757D' }}>
                         No links in this category.
                       </Typography>
                     ) : (
-                      displayedUrls.map((url, index) => (
-                        <ListItem
+                      displayedUrls.map(({ url }, index) => (
+                        <Card
                           key={index}
-                          sx={{ width: 'auto', padding: 0 }}
-                          button
+                          sx={{
+                            width: '100%',
+                            maxWidth: 260,
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #E9ECEF',
+                            borderRadius: '8px',
+                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: '#F8F9FA',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
+                              transform: 'translateY(-1px)',
+                              borderColor: '#DEE2E6',
+                            },
+                          }}
                           component="a"
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          style={{ textDecoration: 'none' }}
                         >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              backgroundColor: '#FFFFFF',
-                              border: '1px solid #E9ECEF',
-                              borderRadius: '8px',
-                              padding: '4px 8px',
-                              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                              transition: 'all 0.2s ease',
-                              '&:hover': {
-                                backgroundColor: '#F8F9FA',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
-                                transform: 'translateY(-1px)',
-                                borderColor: '#DEE2E6',
-                              },
-                            }}
-                          >
-                            <img
-                              src={`https://www.google.com/s2/favicons?domain=${url}`}
-                              alt={`${url} favicon`}
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '50%',
-                                marginRight: '8px',
-                              }}
-                            />
-                            <Typography
-                              variant="body2"
-                              sx={{ color: '#1976d2', textDecoration: 'none' }}
-                            >
-                              {new URL(url).hostname}
-                            </Typography>
-                          </Box>
-                        </ListItem>
+                          <CardContent sx={{ padding: '8px' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <img
+                                src={`https://www.google.com/s2/favicons?domain=${url}`}
+                                alt={`${url} favicon`}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  borderRadius: '50%',
+                                  marginRight: '8px',
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#1976d2', fontWeight: 'medium' }}
+                              >
+                                {new URL(url).hostname}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+                        </Card>
                       ))
                     )}
-                  </List>
+                  </Box>
                 </Box>
               </Drawer>
               <Drawer
@@ -948,12 +1108,12 @@ function App() {
                     width: 900,
                     backgroundColor: '#FFFFFF',
                     color: '#212529',
-                    p: 2,
+                    padding: 2,
                     borderLeft: '1px solid #DEE2E6',
                   },
                 }}
               >
-                <Box sx={{ p: 2, position: 'relative' }}>
+                <Box sx={{ padding: 2, position: 'relative' }}>
                   <IconButton
                     onClick={() => setOpenTasksDrawer(false)}
                     sx={{
@@ -965,7 +1125,7 @@ function App() {
                   >
                     <CloseIcon />
                   </IconButton>
-                  <Typography variant="h6" sx={{ mb: 2, color: '#212529' }}>
+                  <Typography variant="h6" sx={{ marginBottom: 2, color: '#212529' }}>
                     All Tasks
                   </Typography>
                   <Box sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
@@ -989,89 +1149,60 @@ function App() {
               </Drawer>
             </div>
           </div>
-          {parsedResult &&
-            (Array.isArray(parsedResult) ? (
-              parsedResult.map((item, index) => {
-                let itemBackgroundColor = 'inherit';
-                if (item.verdict === 'False') {
-                  itemBackgroundColor = '#E72929';
-                } else if (item.verdict === 'True') {
-                  itemBackgroundColor = '#347928';
-                }
-
-                return (
-                  <div
-                    key={index}
-                    ref={index === parsedResult.length - 1 ? bottomRef : null}
-                    className="response-card-finalResult"
-                    style={{
-                      backgroundColor: itemBackgroundColor,
-                      marginBottom: '15px',
-                    }}
-                  >
+          {parsedResult && (
+            <div>
+              {Array.isArray(parsedResult) ? (
+                parsedResult.map((item, index) => {
+                  let itemBackgroundColor = '#0056e0';
+                  if (item.verdict === 'False') {
+                    itemBackgroundColor = '#E72929';
+                  } else if (item.verdict === 'True') {
+                    itemBackgroundColor = '#347928';
+                  }
+                  return (
                     <div
-                      className="response-content"
-                      style={{ margin: '0', padding: '1px' }}
+                      key={index}
+                      ref={index === parsedResult.length - 1 ? bottomRef : null}
+                      className="response-card-finalResult"
+                      style={{ backgroundColor: itemBackgroundColor, marginBottom: '15px' }}
                     >
-                      <h3>
-                        Fact-Checking Result
-                        {parsedResult.length > 1 ? ` ${index + 1}` : ''}
-                      </h3>
-                      <p>
-                        <strong>Claim:</strong> {item.claim}
-                      </p>
-                      <p>
-                        <strong>Verdict:</strong> {item.verdict}
-                      </p>
-                      <p>
-                        <strong>Explanation:</strong> {item.explanation}
-                      </p>
-                      <p>
-                        <strong>Confidence Level:</strong>{' '}
-                        {Math.round(item.confidence * 10)}
-                      </p>
+                      <div className="response-content" style={{ margin: '0', padding: '16px' }}>
+                        <h3>Fact-Checking Result {parsedResult.length > 1 ? ` ${index + 1}` : ''}</h3>
+                        <p><strong>Claim:</strong> {renderContent(item.claim)}</p>
+                        <p><strong>Verdict:</strong> {renderContent(item.verdict)}</p>
+                        <p><strong>Explanation:</strong> {renderContent(item.explanation)}</p>
+                        <p><strong>Confidence Level:</strong> {item.confidence ? Math.round(item.confidence * 10) : 'N/A'}</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
-            ) : (
-              (() => {
-                let finalResultBackgroundColor = '#0056e0';
-                if (parsedResult.verdict === 'False') {
-                  finalResultBackgroundColor = '#E72929';
-                } else if (parsedResult.verdict === 'True') {
-                  finalResultBackgroundColor = '#347928';
-                }
-
-                return (
-                  <div
-                    ref={bottomRef}
-                    className="response-card-finalResult"
-                    style={{ backgroundColor: finalResultBackgroundColor }}
-                  >
+                  );
+                })
+              ) : (
+                (() => {
+                  let finalResultBackgroundColor = '#0056e0';
+                  if (parsedResult.verdict === 'False') {
+                    finalResultBackgroundColor = '#E72929';
+                  } else if (parsedResult.verdict === 'True') {
+                    finalResultBackgroundColor = '#347928';
+                  }
+                  return (
                     <div
-                      className="response-content"
-                      style={{ margin: '0', padding: '1px' }}
+                      ref={bottomRef}
+                      className="response-card-finalResult"
+                      style={{ backgroundColor: finalResultBackgroundColor }}
                     >
-                      <h3>Fact-Checking Result</h3>
-                      <p>
-                        <strong>Claim:</strong> {parsedResult.claim}
-                      </p>
-                      <p>
-                        <strong>Verdict:</strong> {parsedResult.verdict}
-                      </p>
-                      <p>
-                        <strong>Explanation:</strong> {parsedResult.explanation}
-                      </p>
-                      <p>
-                        <strong>Confidence Level:</strong>{' '}
-                        {Math.round(parsedResult.confidence * 10)}
-                      </p>
+                      <div className="response-content" style={{ margin: '0', padding: '16px' }}>
+                        <h3>Fact-Checking Result</h3>
+                        <p><strong>Claim:</strong> {renderContent(parsedResult.claim)}</p>
+                        <p><strong>Verdict:</strong> {renderContent(parsedResult.verdict)}</p>
+                        <p><strong>Explanation:</strong> {renderContent(parsedResult.explanation)}</p>
+                        <p><strong>Confidence Level:</strong> {parsedResult.confidence ? Math.round(parsedResult.confidence * 10) : 'N/A'}</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })()
-            ))}
+                  );
+                })()
+              )}
+            </div>
+          )}
         </div>
       )}
       {showResults && (
@@ -1106,7 +1237,7 @@ function App() {
                         onClick={() => setOpenPopup(true)}
                         sx={{ color: '#6C757D', p: '8px' }}
                       >
-                        <AddIcon />
+                        <AttachmentIcon />
                       </IconButton>
                     </Tooltip>
                     <Button
@@ -1124,7 +1255,7 @@ function App() {
                           !imageFile &&
                           !videoFile)
                       }
-                      sx={{ mb: 0 }}
+                      sx={{ marginBottom: 0 }}
                     >
                       {isLoading ? (
                         <CircularProgress size={24} sx={{ color: '#ffffff' }} />
@@ -1137,7 +1268,7 @@ function App() {
               ),
               className: 'facts-checker-input',
             }}
-            sx={{ mb: 2 }}
+            sx={{ marginBottom: 2 }}
           />
         </div>
       )}
