@@ -61,6 +61,7 @@ function App() {
   const [facebookLink, setFacebookLink] = useState('');
   const [instagramLink, setInstagramLink] = useState('');
   const [youtubeLink, setYoutubeLink] = useState('');
+  const [genericLink, setGenericLink] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [openPopup, setOpenPopup] = useState(false);
@@ -147,6 +148,7 @@ function App() {
       !facebookLink.trim() &&
       !instagramLink.trim() &&
       !youtubeLink.trim() &&
+      !genericLink.trim() &&
       !imageFile &&
       !videoFile
     ) {
@@ -171,6 +173,7 @@ function App() {
       if (facebookLink.trim()) formData.append('facebookLink', facebookLink);
       if (instagramLink.trim()) formData.append('instagramLink', instagramLink);
       if (youtubeLink.trim()) formData.append('youtubeLink', youtubeLink);
+      if (genericLink.trim()) formData.append('genericLink', genericLink);
       if (imageFile) formData.append('imageFile', imageFile);
       if (videoFile) formData.append('videoFile', videoFile);
 
@@ -338,12 +341,20 @@ function App() {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
-      setSearchedQuery(query || xLink || facebookLink || instagramLink || youtubeLink);
+      setSearchedQuery(
+        query ||
+        xLink ||
+        facebookLink ||
+        instagramLink ||
+        youtubeLink ||
+        genericLink
+      );
       setQuery('');
       setXLink('');
       setFacebookLink('');
       setInstagramLink('');
       setYoutubeLink('');
+      setGenericLink('');
       setImageFile(null);
       setVideoFile(null);
     }
@@ -353,6 +364,7 @@ function App() {
     facebookLink,
     instagramLink,
     youtubeLink,
+    genericLink,
     imageFile,
     videoFile,
     isLoading,
@@ -472,9 +484,9 @@ function App() {
                     onChange={(e) => setQuery(e.target.value)}
                     InputProps={{
                       endAdornment: (
-                          <InputAdornment position="end">
+                        <InputAdornment position="end">
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Tooltip 
+                            <Tooltip
                               title="Add attachment (link, image, video)"
                               arrow
                               componentsProps={{
@@ -484,8 +496,7 @@ function App() {
                                   },
                                 },
                                 arrow: {
-                                  sx: {
-                                  },
+                                  sx: {},
                                 },
                               }}
                             >
@@ -567,6 +578,13 @@ function App() {
               placeholder="Enter YouTube link..."
               value={youtubeLink}
               onChange={(e) => setYoutubeLink(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              variant="outlined"
+              placeholder="Enter any other link..."
+              value={genericLink}
+              onChange={(e) => setGenericLink(e.target.value)}
               fullWidth
             />
             <Box>
@@ -1070,7 +1088,7 @@ function App() {
               endAdornment: (
                 <InputAdornment position="end">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Tooltip 
+                    <Tooltip
                       title="Add attachment (link, image, video)"
                       arrow
                       componentsProps={{
@@ -1080,8 +1098,7 @@ function App() {
                           },
                         },
                         arrow: {
-                          sx: {
-                          },
+                          sx: {},
                         },
                       }}
                     >
@@ -1103,6 +1120,7 @@ function App() {
                           !facebookLink.trim() &&
                           !instagramLink.trim() &&
                           !youtubeLink.trim() &&
+                          !genericLink.trim() &&
                           !imageFile &&
                           !videoFile)
                       }
