@@ -16,19 +16,29 @@ import {
   Typography,
   Drawer,
   Box,
-  ListItemIcon
+  ListItemIcon,
+  Alert,
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AddIcon from '@mui/icons-material/Add';
 import genAIIcon from './assets/genAI_icon.png';
 import genAILogo from './assets/genaiLogo.png';
 import './App.css';
 import EventCard from './components/EventCard';
+import Loader from './components/Loader';
 
 function App() {
   const [query, setQuery] = useState('');
+  const [searchedQuery, setSearchedQuery] = useState('');
   const [events, setEvents] = useState([]);
   const [finalResult, setFinalResult] = useState(null);
   const [sources, setSources] = useState({});
@@ -39,14 +49,22 @@ function App() {
   const [parsedResult, setParsedResult] = useState(null);
   const [likedEvents, setLikedEvents] = useState(new Set());
   const [eventStatuses, setEventStatuses] = useState({});
+  const [rightEventsState, setRightEventsState] = useState([]);
+  const [leftEventsState, setLeftEventsState] = useState([]);
   const bottomRef = useRef(null);
   const leftColumnRef = useRef(null);
   const rightColumnRef = useRef(null);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openTasksDrawer, setOpenTasksDrawer] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null); // null means "All"
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [xLink, setXLink] = useState('');
+  const [facebookLink, setFacebookLink] = useState('');
+  const [instagramLink, setInstagramLink] = useState('');
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [openPopup, setOpenPopup] = useState(false);
 
-  // Helper to add URLs to the categorized state
   const addCategorizedUrl = (category, url) => {
     setSources((prevSources) => {
       const newSources = { ...prevSources };
@@ -74,15 +92,11 @@ function App() {
     'cnbc.com',
     'reuters.com',
     'bloomberg.com',
-    'aninews.in',
-    'indiatoday.in',
-    'aajtak.in',
-    'thehindu.com',
-    'theguardian.com',
-    'timesofindia.indiatimes.com',
-    'thehindubusinessline.com',
-    'theprint.in',
-    'dinamalar.com',
+    'AlJazeera.com',
+    'BBC.com',
+    'CNN.com',
+    'TheGuardian.com',
+    'NYTimes.com',
   ];
 
   const getUrlCategory = (url) => {
@@ -128,28 +142,37 @@ function App() {
 
   const handleQuerySubmit = useCallback(async () => {
     if (
-      (!query.trim() &&
-        !xLink &&
-        !facebookLink &&
-        !instagramLink &&
-        !youtubeLink &&
-        !imageFile &&
-        !videoFile) ||
-      isLoading
-    )
+      !query.trim() &&
+      !xLink.trim() &&
+      !facebookLink.trim() &&
+      !instagramLink.trim() &&
+      !youtubeLink.trim() &&
+      !imageFile &&
+      !videoFile
+    ) {
+      setError('Please provide at least one input to verify.');
       return;
+    }
+
+    if (isLoading) return;
 
     setShowResults(true);
     setIsLoading(true);
     setError(null);
     setEvents([]);
     setFinalResult(null);
-    setParsedResult(null); // Reset parsedResult
+    setParsedResult(null);
     setSources({});
 
     try {
       const formData = new FormData();
       formData.append('query', query);
+      if (xLink.trim()) formData.append('xLink', xLink);
+      if (facebookLink.trim()) formData.append('facebookLink', facebookLink);
+      if (instagramLink.trim()) formData.append('instagramLink', instagramLink);
+      if (youtubeLink.trim()) formData.append('youtubeLink', youtubeLink);
+      if (imageFile) formData.append('imageFile', imageFile);
+      if (videoFile) formData.append('videoFile', videoFile);
 
       const response = await fetch('http://localhost:8000/fact-check/ask', {
         method: 'POST',
@@ -275,10 +298,10 @@ function App() {
 
       if (accumulatedFinalContent) {
         try {
-          const parsedFinal = JSON.parse(accumulatedFinalContent.trim()); 
+          const parsedFinal = JSON.parse(accumulatedFinalContent.trim());
           if (parsedFinal.claim && parsedFinal.verdict) {
             setFinalResult(parsedFinal);
-            setParsedResult(parsedFinal); // Set parsedResult here
+            setParsedResult(parsedFinal);
             if (parsedFinal.citations && Array.isArray(parsedFinal.citations)) {
               parsedFinal.citations.forEach((url) => {
                 if (typeof url === 'string') {
@@ -315,18 +338,70 @@ function App() {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
+      setSearchedQuery(query || xLink || facebookLink || instagramLink || youtubeLink);
+      setQuery('');
+      setXLink('');
+      setFacebookLink('');
+      setInstagramLink('');
+      setYoutubeLink('');
+      setImageFile(null);
+      setVideoFile(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, isLoading, findAndCategorizeUrls]);
+  }, [
+    query,
+    xLink,
+    facebookLink,
+    instagramLink,
+    youtubeLink,
+    imageFile,
+    videoFile,
+    isLoading,
+    findAndCategorizeUrls,
+  ]);
 
-  // Scroll left column to bottom when events update
+  const getDisplayEventName = (eventData) => {
+    if (eventData.reasoning_content) {
+      return eventData.event;
+    }
+
+    if (eventData.tools && eventData.tools.length > 0) {
+      let toolList = eventData.tools;
+      if (Array.isArray(toolList) && toolList.length > 0) {
+        const tool = toolList[0];
+        const toolName = tool.tool_name || 'Unknown Tool';
+        return `${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`;
+      }
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    const latestEvents =
+      events.length > 0
+        ? [events[events.length - 1]].filter(
+            (eventData) =>
+              eventData.reasoning_content ||
+              (eventData.tools && eventData.tools.length > 0)
+          )
+        : [];
+    setRightEventsState(latestEvents);
+
+    const filteredLeftEvents = events
+      .map((eventData, index) => ({ eventData, index }))
+      .filter(({ eventData }) => {
+        const displayName = getDisplayEventName(eventData);
+        return displayName !== null;
+      });
+    setLeftEventsState(filteredLeftEvents);
+  }, [events]);
+
   useEffect(() => {
     if (leftColumnRef.current) {
       leftColumnRef.current.scrollTop = leftColumnRef.current.scrollHeight;
     }
   }, [events]);
 
-  // Scroll to bottom when parsedResult updates
   useEffect(() => {
     if (parsedResult && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -350,61 +425,28 @@ function App() {
     }, 2000);
   };
 
-  const getDisplayEventName = (eventData) => {
-    if (eventData.reasoning_content) {
-      return eventData.event;
-    }
-
-    if (eventData.tools && eventData.tools.length > 0) {
-      let toolList = eventData.tools;
-      if (Array.isArray(toolList) && toolList.length > 0) {
-        const tool = toolList[0];
-        const toolName = tool.tool_name || 'Unknown Tool';
-        return `${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`;
-      }
-    }
-
-    return null;
-  };
-
-  const leftEvents = events
-    .map((eventData, index) => ({ eventData, index }))
-    .filter(({ eventData }) => {
-      const displayName = getDisplayEventName(eventData);
-      return displayName !== null;
-    });
-
-  // Show only the latest event with reasoning_content or tools
-  const rightEvents = events.length > 0 ? [events[events.length - 1]].filter(
-    (eventData) => eventData.reasoning_content || (eventData.tools && eventData.tools.length > 0)
-  ) : [];
-
-  // Calculate total number of links
-  const totalLinks = Object.values(sources).reduce((sum, urlSet) => sum + urlSet.size, 0);
-
-  // Flatten URLs for "All" view
-  const allUrls = Object.values(sources).flatMap(urlSet => [...urlSet]);
-
-  // Select up to 3 URLs for favicons
+  const totalLinks = Object.values(sources).reduce(
+    (sum, urlSet) => sum + urlSet.size,
+    0
+  );
+  const allUrls = Object.values(sources).flatMap((urlSet) => [...urlSet]);
   const faviconUrls = allUrls.slice(0, 3);
-
-  // Determine which URLs to display based on selectedCategory
-  const displayedUrls = selectedCategory ? [...(sources[selectedCategory] || [])] : allUrls;
-  console.log('events', events);
-console.log('parsedResult', parsedResult);
+  const displayedUrls = selectedCategory
+    ? [...(sources[selectedCategory] || [])]
+    : allUrls;
 
   return (
     <div className="app-container">
       <div className="facts-checker-title">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img 
-            src={genAIIcon} 
-            alt="GenAI Icon" 
+          <img
+            src={genAIIcon}
+            alt="GenAI Icon"
             style={{ width: '32px', height: '32px' }}
           />
-          <img 
-            src={genAILogo} 
-            alt="GenAI Icon" 
+          <img
+            src={genAILogo}
+            alt="GenAI Logo"
             style={{ width: 'auto', height: '18px' }}
           />
         </Box>
@@ -412,91 +454,257 @@ console.log('parsedResult', parsedResult);
       {!showResults && (
         <div className="facts-checker-container">
           <div className="facts-checker-content">
-            <h2 className="facts-checker-question">What would you like to verify?</h2>
-            <div className="input-section">
-              <TextField
-                variant="outlined"
-                placeholder="Enter something you want to verify..."
-                multiline
-                minRows={1}
-                maxRows={6}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Button
-                        variant="contained"
-                        className="facts-checker-button"
-                        onClick={handleQuerySubmit}
-                        disabled={isLoading}
-                      >
-                        <ArrowUpwardIcon />
-                      </Button>
-                    </InputAdornment>
-                  ),
-                  className: 'facts-checker-input',
-                }}
-              />
-            </div>
+            {isLoading ? (
+              <Loader />
+            ) : (
+              <>
+                <h2 className="facts-checker-question">
+                  What would you like to verify?
+                </h2>
+                <div className="input-section">
+                  <TextField
+                    variant="outlined"
+                    placeholder="Enter something you want to verify..."
+                    multiline
+                    minRows={1}
+                    maxRows={6}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    InputProps={{
+                      endAdornment: (
+                          <InputAdornment position="end">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Tooltip 
+                              title="Add attachment (link, image, video)"
+                              arrow
+                              componentsProps={{
+                                tooltip: {
+                                  sx: {
+                                    fontSize: '1rem',
+                                  },
+                                },
+                                arrow: {
+                                  sx: {
+                                  },
+                                },
+                              }}
+                            >
+                              <IconButton
+                                onClick={() => setOpenPopup(true)}
+                                sx={{ color: '#6C757D', p: '8px' }}
+                              >
+                                <AddIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Button
+                              variant="contained"
+                              className="facts-checker-button"
+                              onClick={handleQuerySubmit}
+                              disabled={isLoading}
+                              sx={{ mb: 0 }}
+                            >
+                              <ArrowUpwardIcon />
+                            </Button>
+                          </Box>
+                        </InputAdornment>
+                      ),
+                      className: 'facts-checker-input',
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
-      <div>
+      <Dialog
+        open={openPopup}
+        onClose={() => setOpenPopup(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { backgroundColor: '#FFFFFF', color: '#212529', p: 2 } }}
+      >
+        <DialogTitle>
+          Additional Verification Inputs
+          <IconButton
+            onClick={() => setOpenPopup(false)}
+            sx={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              color: '#6C757D',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              variant="outlined"
+              placeholder="Enter X link..."
+              value={xLink}
+              onChange={(e) => setXLink(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              variant="outlined"
+              placeholder="Enter Facebook link..."
+              value={facebookLink}
+              onChange={(e) => setFacebookLink(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              variant="outlined"
+              placeholder="Enter Instagram link..."
+              value={instagramLink}
+              onChange={(e) => setInstagramLink(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              variant="outlined"
+              placeholder="Enter YouTube link..."
+              value={youtubeLink}
+              onChange={(e) => setYoutubeLink(e.target.value)}
+              fullWidth
+            />
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Upload Image
+              </Typography>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])}
+                style={{ display: 'block' }}
+              />
+            </Box>
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Upload Video
+              </Typography>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => setVideoFile(e.target.files[0])}
+                style={{ display: 'block' }}
+              />
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenPopup(false)}
+            sx={{ color: '#6C757D', textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => setOpenPopup(false)}
+            variant="contained"
+            sx={{ backgroundColor: '#0D6EFD', color: '#FFFFFF', textTransform: 'none' }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
       {showResults && (
         <div className="results-wrapper">
           {error && (
-            <p className="error-message">
-              Error: {error}
-            </p>
+            <Alert
+              severity="error"
+              sx={{ mt: 2, mb: 2 }}
+              variant="outlined"
+              style={{ position: 'absolute', top: 0 }}
+            >
+              <AlertTitle>Error</AlertTitle>
+              {error}
+            </Alert>
           )}
-          <div className='resultContainer'>
-            <h2 className="searched-query">{query}</h2>
+          <div className="resultContainer">
+            <h2 className="searched-query">{searchedQuery}</h2>
             <div className="results-container">
-              <div className="left-column" ref={leftColumnRef}>
-                <h3 className="section-title">Fact Check</h3>
-                <List sx={{ backgroundColor: '#F8F9FA', color: '#212529', borderRadius: '8px', padding: '8px', border: '1px solid #DEE2E6' }}>
-                  {leftEvents.length === 0 && !isLoading ? (
-                    <ListItem>
-                      <ListItemText primary="No events available" />
-                    </ListItem>
-                  ) : (
-                    leftEvents.map(({ eventData, index }) => (
-                      <ListItem
-                        key={index}
+              {isLoading &&
+              leftEventsState.length === 0 &&
+              rightEventsState.length === 0 ? (
+                <Loader />
+              ) : (
+                <>
+                  <div className="left-column" ref={leftColumnRef}>
+                    <h3 className="section-title">Fact Check</h3>
+                    <List
+                      sx={{
+                        color: '#212529',
+                        borderRadius: '8px',
+                        padding: '8px',
+                      }}
+                    >
+                      {leftEventsState.length === 0 && !isLoading ? (
+                        <ListItem>
+                          <ListItemText primary="No events available" />
+                        </ListItem>
+                      ) : (
+                        leftEventsState.map(({ eventData, index }) => (
+                          <ListItem
+                            key={index}
+                            sx={{
+                              alignItems: 'center',
+                              justifyContent: 'flex-start',
+                              padding: '20px',
+                              paddingLeft: '0',
+                            }}
+                          >
+                            <CheckCircleIcon
+                              sx={{ color: '#67AE6E', mr: 2 }}
+                              fontSize="medium"
+                            />
+                            <Typography variant="body1">
+                              {getDisplayEventName(eventData)}
+                            </Typography>
+                          </ListItem>
+                        ))
+                      )}
+                      {isLoading && (
+                        <ListItem
+                          sx={{
+                            justifyContent: 'flex-start',
+                            padding: '8px',
+                            paddingLeft: '0',
+                          }}
+                        >
+                          <CircularProgress
+                            size={24}
+                            sx={{ color: '#222831' }}
+                          />
+                        </ListItem>
+                      )}
+                    </List>
+                  </div>
+                  <div className="right-column" ref={rightColumnRef}>
+                    {rightEventsState.length === 0 && isLoading && (
+                      <Box
                         sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
                           alignItems: 'center',
-                          justifyContent: 'flex-start',
-                          padding: '20px',
-                          paddingLeft: '0'
+                          height: '100%',
                         }}
                       >
-                        <CheckCircleIcon sx={{ color: '#67AE6E', mr: 2 }} fontSize="medium" />
-                        <Typography variant="body1">
-                          {getDisplayEventName(eventData)}
-                        </Typography>
-                      </ListItem>
-                    ))
-                  )}
-                  {isLoading && (
-                    <ListItem sx={{ justifyContent: 'flex-start', padding: '8px', paddingLeft: '0' }}>
-                      <CircularProgress size={24} sx={{ color: '#222831' }} />
-                    </ListItem>
-                  )}
-                </List>
-              </div>
-              <div className="right-column" ref={rightColumnRef}>
-                {rightEvents.length === 0 && isLoading && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress size={40} sx={{ color: '#222831' }} />
-                  </Box>
-                )}
-                {rightEvents.map((eventData, index) => (
-                  <div key={index} className="event-card-wrapper">
-                    <EventCard eventData={eventData} />
+                        <CircularProgress
+                          size={40}
+                          sx={{ color: '#222831' }}
+                        />
+                      </Box>
+                    )}
+                    {rightEventsState.map((eventData, index) => (
+                      <div key={index} className="event-card-wrapper">
+                        <EventCard eventData={eventData} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
             <div className="response-card sources-card">
               <div className="response-content">
@@ -517,7 +725,13 @@ console.log('parsedResult', parsedResult);
                         },
                       }}
                       startIcon={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
                           {faviconUrls.map((url, index) => (
                             <img
                               key={index}
@@ -536,7 +750,7 @@ console.log('parsedResult', parsedResult);
                       {totalLinks} web pages
                     </Button>
                   )}
-                  {rightEvents.length > 0 && (
+                  {leftEventsState.length > 0 && (
                     <Button
                       onClick={() => setOpenTasksDrawer(true)}
                       sx={{
@@ -565,7 +779,15 @@ console.log('parsedResult', parsedResult);
                   setOpenDrawer(false);
                   setSelectedCategory(null);
                 }}
-                sx={{ '& .MuiDrawer-paper': { width: 600, backgroundColor: '#FFFFFF', color: '#212529', p: 2, borderLeft: '1px solid #DEE2E6' } }}
+                sx={{
+                  '& .MuiDrawer-paper': {
+                    width: 600,
+                    backgroundColor: '#FFFFFF',
+                    color: '#212529',
+                    p: 2,
+                    borderLeft: '1px solid #DEE2E6',
+                  },
+                }}
               >
                 <Box sx={{ p: 2, position: 'relative' }}>
                   <IconButton
@@ -589,15 +811,21 @@ console.log('parsedResult', parsedResult);
                     <Button
                       onClick={() => setSelectedCategory(null)}
                       sx={{
-                        backgroundColor: selectedCategory === null ? '#0D6EFD' : '#E9ECEF',
-                        color: selectedCategory === null ? '#FFFFFF' : '#212529',
-                        border: selectedCategory !== null ? '1px solid #DEE2E6' : 'none',
+                        backgroundColor:
+                          selectedCategory === null ? '#0D6EFD' : '#E9ECEF',
+                        color:
+                          selectedCategory === null ? '#FFFFFF' : '#212529',
+                        border:
+                          selectedCategory !== null
+                            ? '1px solid #DEE2E6'
+                            : 'none',
                         borderRadius: '16px',
                         padding: '4px 12px',
                         textTransform: 'none',
                         fontSize: '12px',
                         '&:hover': {
-                          backgroundColor: selectedCategory === null ? '#0B5ED7' : '#DEE2E6',
+                          backgroundColor:
+                            selectedCategory === null ? '#0B5ED7' : '#DEE2E6',
                         },
                       }}
                     >
@@ -608,15 +836,27 @@ console.log('parsedResult', parsedResult);
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         sx={{
-                          backgroundColor: selectedCategory === category ? '#0D6EFD' : '#E9ECEF',
-                          color: selectedCategory === category ? '#FFFFFF' : '#212529',
-                          border: selectedCategory !== category ? '1px solid #DEE2E6' : 'none',
+                          backgroundColor:
+                            selectedCategory === category
+                              ? '#0D6EFD'
+                              : '#E9ECEF',
+                          color:
+                            selectedCategory === category
+                              ? '#FFFFFF'
+                              : '#212529',
+                          border:
+                            selectedCategory !== category
+                              ? '1px solid #DEE2E6'
+                              : 'none',
                           borderRadius: '16px',
                           padding: '4px 12px',
                           textTransform: 'none',
                           fontSize: '12px',
                           '&:hover': {
-                            backgroundColor: selectedCategory === category ? '#0B5ED7' : '#DEE2E6',
+                            backgroundColor:
+                              selectedCategory === category
+                                ? '#0B5ED7'
+                                : '#DEE2E6',
                           },
                         }}
                       >
@@ -685,7 +925,15 @@ console.log('parsedResult', parsedResult);
                 anchor="right"
                 open={openTasksDrawer}
                 onClose={() => setOpenTasksDrawer(false)}
-                sx={{ '& .MuiDrawer-paper': { width: 900, backgroundColor: '#FFFFFF', color: '#212529', p: 2, borderLeft: '1px solid #DEE2E6' } }}
+                sx={{
+                  '& .MuiDrawer-paper': {
+                    width: 900,
+                    backgroundColor: '#FFFFFF',
+                    color: '#212529',
+                    p: 2,
+                    borderLeft: '1px solid #DEE2E6',
+                  },
+                }}
               >
                 <Box sx={{ p: 2, position: 'relative' }}>
                   <IconButton
@@ -709,7 +957,11 @@ console.log('parsedResult', parsedResult);
                       </Typography>
                     ) : (
                       events
-                        .filter((eventData) => eventData.reasoning_content || (eventData.tools && eventData.tools.length > 0))
+                        .filter(
+                          (eventData) =>
+                            eventData.reasoning_content ||
+                            (eventData.tools && eventData.tools.length > 0)
+                        )
                         .map((eventData, index) => (
                           <EventCard key={index} eventData={eventData} />
                         ))
@@ -719,67 +971,91 @@ console.log('parsedResult', parsedResult);
               </Drawer>
             </div>
           </div>
+          {parsedResult &&
+            (Array.isArray(parsedResult) ? (
+              parsedResult.map((item, index) => {
+                let itemBackgroundColor = 'inherit';
+                if (item.verdict === 'False') {
+                  itemBackgroundColor = '#E72929';
+                } else if (item.verdict === 'True') {
+                  itemBackgroundColor = '#347928';
+                }
+
+                return (
+                  <div
+                    key={index}
+                    ref={index === parsedResult.length - 1 ? bottomRef : null}
+                    className="response-card-finalResult"
+                    style={{
+                      backgroundColor: itemBackgroundColor,
+                      marginBottom: '15px',
+                    }}
+                  >
+                    <div
+                      className="response-content"
+                      style={{ margin: '0', padding: '1px' }}
+                    >
+                      <h3>
+                        Fact-Checking Result
+                        {parsedResult.length > 1 ? ` ${index + 1}` : ''}
+                      </h3>
+                      <p>
+                        <strong>Claim:</strong> {item.claim}
+                      </p>
+                      <p>
+                        <strong>Verdict:</strong> {item.verdict}
+                      </p>
+                      <p>
+                        <strong>Explanation:</strong> {item.explanation}
+                      </p>
+                      <p>
+                        <strong>Confidence Level:</strong>{' '}
+                        {Math.round(item.confidence * 10)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              (() => {
+                let finalResultBackgroundColor = '#0056e0';
+                if (parsedResult.verdict === 'False') {
+                  finalResultBackgroundColor = '#E72929';
+                } else if (parsedResult.verdict === 'True') {
+                  finalResultBackgroundColor = '#347928';
+                }
+
+                return (
+                  <div
+                    ref={bottomRef}
+                    className="response-card-finalResult"
+                    style={{ backgroundColor: finalResultBackgroundColor }}
+                  >
+                    <div
+                      className="response-content"
+                      style={{ margin: '0', padding: '1px' }}
+                    >
+                      <h3>Fact-Checking Result</h3>
+                      <p>
+                        <strong>Claim:</strong> {parsedResult.claim}
+                      </p>
+                      <p>
+                        <strong>Verdict:</strong> {parsedResult.verdict}
+                      </p>
+                      <p>
+                        <strong>Explanation:</strong> {parsedResult.explanation}
+                      </p>
+                      <p>
+                        <strong>Confidence Level:</strong>{' '}
+                        {Math.round(parsedResult.confidence * 10)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()
+            ))}
         </div>
       )}
-      {parsedResult && (
-        Array.isArray(parsedResult) ? (
-          // Render multiple results if parsedResult is an array
-          parsedResult.map((item, index) => {
-            // Determine background color for this item
-            let itemBackgroundColor = 'inherit'; // Default color
-            if (item.verdict === 'False') {
-              itemBackgroundColor = '#E72929'; // Red for False
-            } else if (item.verdict === 'True') {
-              itemBackgroundColor = '#347928'; // Green for True
-            }
-
-            return (
-              <div
-                key={index} // Unique key for each mapped element
-                ref={index === parsedResult.length - 1 ? bottomRef : null} // Attach ref to the last item for scrolling
-                className="response-card-finalResult"
-                style={{ backgroundColor: itemBackgroundColor, marginBottom: '15px' }} // Apply conditional color and add spacing
-              >
-                <div className="response-content" style={{ margin: '0', padding: '1px' }}>
-                  {/* Add index if more than one result */}
-                  <h3>Fact-Checking Result{parsedResult.length > 1 ? ` ${index + 1}` : ''}</h3>
-                  <p><strong>Claim:</strong> {item.claim}</p>
-                  <p><strong>Verdict:</strong> {item.verdict}</p>
-                  <p><strong>Explanation:</strong> {item.explanation}</p>
-                  <p><strong>Confidence Level:</strong> {Math.round(item.confidence * 10)}</p>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          // Render single result if parsedResult is an object (existing logic)
-          (() => {
-            let finalResultBackgroundColor = 'inherit';
-            if (parsedResult.verdict === 'False') {
-              finalResultBackgroundColor = '#E72929';
-            } else if (parsedResult.verdict === 'True') {
-              finalResultBackgroundColor = '#347928';
-            }
-
-            return (
-              <div
-                ref={bottomRef} // Attach ref here
-                className="response-card-finalResult"
-                style={{ backgroundColor: finalResultBackgroundColor }}
-              >
-                <div className="response-content" style={{ margin: '0', padding: '1px' }}>
-                  <h3>Fact-Checking Result</h3>
-                  <p><strong>Claim:</strong> {parsedResult.claim}</p>
-                  <p><strong>Verdict:</strong> {parsedResult.verdict}</p>
-                  <p><strong>Explanation:</strong> {parsedResult.explanation}</p>
-                  <p><strong>Confidence Level:</strong> {Math.round(parsedResult.confidence * 10)}</p>
-                </div>
-              </div>
-            );
-          })()
-        )
-      )}
-      </div>
       {showResults && (
         <div className="input-section bottom-input">
           <TextField
@@ -793,18 +1069,57 @@ console.log('parsedResult', parsedResult);
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <Button
-                    variant="contained"
-                    className="facts-checker-button"
-                    onClick={handleQuerySubmit}
-                    disabled={isLoading || !query.trim()}
-                  >
-                    {isLoading ? <CircularProgress size={24} sx={{ color: '#ffffff' }} /> : <ArrowUpwardIcon sx={{ color: '#ffffff' }} />}
-                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Tooltip 
+                      title="Add attachment (link, image, video)"
+                      arrow
+                      componentsProps={{
+                        tooltip: {
+                          sx: {
+                            fontSize: '0.9rem',
+                          },
+                        },
+                        arrow: {
+                          sx: {
+                          },
+                        },
+                      }}
+                    >
+                      <IconButton
+                        onClick={() => setOpenPopup(true)}
+                        sx={{ color: '#6C757D', p: '8px' }}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Button
+                      variant="contained"
+                      className="facts-checker-button"
+                      onClick={handleQuerySubmit}
+                      disabled={
+                        isLoading ||
+                        (!query.trim() &&
+                          !xLink.trim() &&
+                          !facebookLink.trim() &&
+                          !instagramLink.trim() &&
+                          !youtubeLink.trim() &&
+                          !imageFile &&
+                          !videoFile)
+                      }
+                      sx={{ mb: 0 }}
+                    >
+                      {isLoading ? (
+                        <CircularProgress size={24} sx={{ color: '#ffffff' }} />
+                      ) : (
+                        <ArrowUpwardIcon sx={{ color: '#ffffff' }} />
+                      )}
+                    </Button>
+                  </Box>
                 </InputAdornment>
               ),
               className: 'facts-checker-input',
             }}
+            sx={{ mb: 2 }}
           />
         </div>
       )}

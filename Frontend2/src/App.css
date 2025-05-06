@@ -124,7 +124,7 @@
   border-radius: 50px !important;
   min-width: 40px !important;
   padding: 8px !important;
-  margin-bottom: 30px !important;
+  margin-left: 5px !important;
 }
 
 .facts-checker-button:hover {
@@ -134,11 +134,12 @@
 
 .facts-checker-input .MuiInputAdornment-root {
   margin: 0;
-  align-self: flex-end;
+  align-items: center;
 }
 
 .results-wrapper {
   flex-grow: 1;
+  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   height: auto;
@@ -150,7 +151,6 @@
   margin: 16px 0;
   color: #212529;
   text-align: center;
-  background: #E9ECEF;
   width: fit-content;
   margin: 0 auto;
   float: right;
@@ -164,6 +164,7 @@
 
 .results-container {
   max-width: 1000px;
+  height: 70vh;
   margin: 0 auto;
   padding: 10px;
   background: #FFFFFF;
@@ -173,6 +174,8 @@
   color: #212529;
   border: 1px solid #DEE2E6;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  align-items: center;
 }
 
 .left-column {
