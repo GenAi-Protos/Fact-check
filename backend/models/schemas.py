@@ -11,6 +11,14 @@ class ClaimsToBeVerified(BaseModel):
             or would require external evidence or expert verification to confirm."""
     )
 
+class ExtractedClaimsResponse(BaseModel):
+    """Response for the extract-claims endpoint"""
+    claims: List[str] = Field(..., description="List of extracted claims from the input")
+
+class ClaimsInput(BaseModel):
+    """Input for the ask endpoint"""
+    claims: List[str] = Field(..., description="List of claims to be fact-checked")
+
 class FinalSteps(BaseModel):
     """Final Team Agent Structured Output"""
     claim: str = Field(..., description="The factual claim that was extracted and verified.")
@@ -30,14 +38,3 @@ class IntermediateSteps(BaseModel):
 
 class IntermediateResponse(BaseModel):
     evidence: Optional[List[IntermediateSteps]] = Field(default=None, description="List of sources and their explanations related to the claims.")
-
-class Query(BaseModel):
-    query: str = Field(..., description="The query or claim to be fact-checked")
-    x_link: Optional[str] = Field(default=None, description="Link to Twitter/X post to be fact-checked")
-    facebook_link: Optional[str] = Field(default=None, description="Link to Facebook post to be fact-checked")
-    instagram_link: Optional[str] = Field(default=None, description="Link to Instagram post to be fact-checked")
-    youtube_link: Optional[str] = Field(default=None, description="Link to YouTube video to be fact-checked")
-
-class FactCheckResponse(BaseModel):
-    response: FinalResponse = Field(..., description="The detailed fact-check response")
-    citations: List[str] = Field(..., description="List of all citation URLs used in the fact-checking process")

@@ -74,7 +74,14 @@ def read_root():
     """
     Root endpoint that redirects to the documentation
     """
-    return {"message": "Welcome to Fact Check API", "docs": "/docs"}
+    return {
+        "message": "Welcome to Fact Check API", 
+        "docs": "/docs",
+        "endpoints": {
+            "extract-claims": "/fact-check/extract-claims - Extracts claims from various inputs",
+            "ask": "/fact-check/ask - Performs fact-checking on provided claims"
+        }
+    }
 
 # Run the API if executed as a script
 if __name__ == "__main__":
@@ -83,7 +90,7 @@ if __name__ == "__main__":
     
     # Run the API
     uvicorn.run(
-        "fact_check_api.app:app", 
+        "app:app", 
         host=settings.API_HOST, 
         port=settings.API_PORT,
         reload=settings.DEBUG

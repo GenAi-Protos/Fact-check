@@ -1,148 +1,116 @@
 # Fact Check API
 
-A modular FastAPI backend for fact-checking claims using AI agents.
+API for fact-checking claims using AI agents.
 
-![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100.0+-green.svg)
-![Agno](https://img.shields.io/badge/Agno-0.1.0+-orange.svg)
+## Architecture
 
-## Project Structure
+The fact-checking process is separated into two distinct steps:
+
+1. **Claim Extraction**: Extract factual claims from various inputs (text, links, images, videos)
+2. **Fact Checking**: Verify the extracted claims
+
+This separation allows for:
+- Getting immediate feedback on what claims were extracted
+- Manually reviewing and editing claims before fact-checking
+- Potentially better performance and clearer responsibility separation
+
+## Endpoints
+
+### 1. Extract Claims
 
 ```
-fact-check/
-├── api/                  # API endpoints
-│   └── routes/
-│       └── fact_check.py # Fact checking endpoints
-├── config/               # Configuration
-│   └── settings.py       # Environment and app settings
-├── core/                 # Business logic
-│   ├── fact_checker.py   # Main fact checking service
-│   └── teams/            # Team coordination
-│       └── fact_check_team.py
-├── models/               # Data models
-│   └── schemas.py        # Pydantic models
-├── services/             # Services and integrations
-│   └── agents/           # AI agent definitions
-│       └── agent_factory.py
-├── utils/                # Utility functions
-│   ├── extractors.py     # Content extraction utilities
-│   └── proxies.py        # User agent strings
-├── .gitignore            # Git ignore file
-├── app.py                # FastAPI application definition
-├── main.py               # Main entry point
-├── pyproject.toml        # Project metadata and dependencies
-├── README.md             # Project documentation
-├── requirements.txt      # Pip requirements file
-└── uv.lock               # Lock file for dependencies
+POST /fact-check/extract-claims
 ```
 
-## Features
+This endpoint extracts claims from various inputs:
+- Text query
+- Social media links (Twitter/X, Facebook, Instagram)
+- YouTube videos
+- Generic URLs
+- Images
+- Videos
 
-- Asynchronous fact-checking API
-- Modular design with clear separation of concerns
-- Support for processing URLs and extracting content
-- Multiple AI agents specialized for different research tasks
-- Team-based approach to fact verification
-- Comprehensive error handling and request logging
+**Request Format**: Multipart form data with the following fields:
+- `query`: (required) Text query
+- `x_link`: (optional) Twitter/X link
+- `facebook_link`: (optional) Facebook link
+- `instagram_link`: (optional) Instagram link
+- `youtube_link`: (optional) YouTube link
+- `generic_link`: (optional) Generic URL
+- `image_file`: (optional) Image file upload
+- `video_file`: (optional) Video file upload
 
-## API Endpoints
-
-- `POST /fact-check/ask`: Asynchronously fact-check a claim or query
-- `GET /health`: Health check endpoint
-- `GET /`: Welcome page with link to documentation
-
-## Dependencies
-
-- **agno (>= 0.1.0)**: AI agent orchestration library
-- **FastAPI (>= 0.100.0)**: Modern, fast web framework
-- **Pydantic (>= 2.0.0)**: Data validation and settings management
-- **Uvicorn (>= 0.23.0)**: ASGI server implementation
-- **boto3 (>= 1.28.0)**: AWS SDK for Python
-- **requests/httpx**: HTTP client libraries
-- **python-dotenv**: Environment variable management
-- **python-multipart**: Multipart form parsing
-
-For a complete list of dependencies, see `pyproject.toml`.
-
-## Setup Instructions
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   or using the project file:
-   ```bash
-   pip install -e .
-   ```
-
-3. Create a `.env` file with required API keys:
-   ```
-   OPENAI_API_KEY=your_openai_key
-   EXA_API_KEY=your_exa_key
-   OPENROUTER_API_KEY=your_openrouter_key
-   GOOGLE_API_KEY=your_google_key
-   TAVILY_API_KEY=your_tavily_key
-   BEARER_TOKEN=your_twitter_bearer_token
-   AWS_ACCESS_KEY_ID=your_aws_access_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   AWS_REGION=us-east-1
-   ```
-
-4. Run the API:
-   ```bash
-   python main.py
-   ```
-   
-## Environment Variables
-
-- `API_HOST`: Host to run the API on (default: "localhost")
-- `API_PORT`: Port to run the API on (default: 8000)
-- `DEBUG`: Enable debug mode with auto-reload (default: False)
-
-Plus all API keys mentioned in the setup section.
-
-## Usage Example
-
-```python
-import requests
-import json
-
-url = "http://localhost:8000/fact-check/ask"
-payload = {
-    "query": "Did NASA find evidence of life on Mars?"
+**Response Format**: JSON with the extracted claims:
+```json
+{
+  "event": "ClaimsExtracted",
+  "claims": [
+    "Claim 1 text",
+    "Claim 2 text",
+    "..."
+  ]
 }
-headers = {
-    "Content-Type": "application/json"
-}
-
-response = requests.post(url, headers=headers, data=json.dumps(payload))
-result = response.json()
-print(json.dumps(result, indent=2))
 ```
 
-## Development
+### 2. Fact Check Claims
 
-To run the API in development mode with auto-reload:
+```
+POST /fact-check/ask
+```
+
+This endpoint fact-checks a list of claims.
+
+**Request Format**: JSON with the list of claims:
+```json
+{
+  "claims": [
+    "Claim 1 text",
+    "Claim 2 text",
+    "..."
+  ]
+}
+```
+
+**Response Format**: Streaming NDJSON with chunks of the fact-checking process.
+
+## Running the API
+
+To run the API:
 
 ```bash
-export DEBUG=True
+cd backend
 python main.py
 ```
 
-## Documentation
+## Testing
 
-When the API is running, you can access the interactive documentation:
+### Extract Claims Example
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/fact-check/extract-claims' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'query=The earth is flat and vaccines cause autism.'
+```
 
-## Contributing
+### Fact Check Claims Example
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/fact-check/ask' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "claims": [
+    "The earth is flat",
+    "Vaccines cause autism"
+  ]
+}'
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## API Documentation
+
+The API documentation is available at:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
