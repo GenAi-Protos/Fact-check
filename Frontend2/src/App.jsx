@@ -820,7 +820,7 @@ function App() {
             </Alert>
           )}
           <div className="resultContainer">
-            <h2 className="searched-query">{searchedQuery}</h2>
+            <h2 className="searched-query">{query || searchedQuery}</h2>
             <div className="results-container">
               {isLoading &&
               leftEventsState.length === 0 &&
