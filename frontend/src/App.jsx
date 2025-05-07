@@ -210,13 +210,13 @@ function App() {
     try {
       const formData = new FormData();
       formData.append('query', query);
-      if (xLink.trim()) formData.append('xLink', xLink);
-      if (facebookLink.trim()) formData.append('facebookLink', facebookLink);
-      if (instagramLink.trim()) formData.append('instagramLink', instagramLink);
-      if (youtubeLink.trim()) formData.append('youtubeLink', youtubeLink);
-      if (genericLink.trim()) formData.append('genericLink', genericLink);
-      if (imageFile) formData.append('imageFile', imageFile);
-      if (videoFile) formData.append('videoFile', videoFile);
+      if (xLink.trim()) formData.append('x_link', xLink);
+      if (facebookLink.trim()) formData.append('facebook_link', facebookLink);
+      if (instagramLink.trim()) formData.append('instagram_link', instagramLink);
+      if (youtubeLink.trim()) formData.append('youtube_link', youtubeLink);
+      if (genericLink.trim()) formData.append('generic_link', genericLink);
+      if (imageFile) formData.append('image_file', imageFile);
+      if (videoFile) formData.append('video_file', videoFile);
 
       const response = await fetch('http://localhost:8000/fact-check/extract-claims', {
         method: 'POST',
