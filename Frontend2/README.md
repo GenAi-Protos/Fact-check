@@ -1,8 +1,6 @@
 # Fact Check
 
-## 🚀 Run Locally
-
-To run this project locally:
+To run this project locally 🚀:
 
 - Use **Node.js version 23+**
 - Install dependencies using:
