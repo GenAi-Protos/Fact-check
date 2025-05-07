@@ -32,11 +32,28 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AttachmentIcon from '@mui/icons-material/Attachment';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import YouTubeIcon from '@mui/icons-material/YouTube';
+import LinkIcon from '@mui/icons-material/Link';
+import ImageIcon from '@mui/icons-material/Image';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import genAIIcon from './assets/genAI_icon.png';
 import genAILogo from './assets/genaiLogo.png';
 import './App.css';
 import EventCard from './components/EventCard';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import SecurityIcon from '@mui/icons-material/Security';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Loader from './components/Loader';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import StorageIcon from '@mui/icons-material/Storage';
+import BoltIcon from '@mui/icons-material/Bolt';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import InfoIcon from '@mui/icons-material/Info';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -70,6 +87,7 @@ function App() {
   const [claims, setClaims] = useState([]);
   const [selectedClaims, setSelectedClaims] = useState([]);
   const [openClaimsDialog, setOpenClaimsDialog] = useState(false);
+  const [expandedResults, setExpandedResults] = useState({});
 
   const addCategorizedUrl = (category, url, title = 'Untitled') => {
     setSources((prevSources) => {
@@ -148,7 +166,6 @@ function App() {
     [],
   );
 
-  // Utility function to render content, handling JSON objects
   const renderContent = (content) => {
     if (!content) return 'No content provided';
     if (typeof content === 'string') {
@@ -247,7 +264,7 @@ function App() {
       setError('Please select at least one claim to verify.');
       return;
     }
-      setOpenClaimsDialog(false);
+    setOpenClaimsDialog(false);
     setIsLoading(true);
     setError(null);
     setShowResults(true);
@@ -564,85 +581,503 @@ function App() {
     ? sources[selectedCategory] || []
     : allUrls;
 
+  const anyInputActive =
+    xLink.trim() ||
+    facebookLink.trim() ||
+    instagramLink.trim() ||
+    youtubeLink.trim() ||
+    genericLink.trim() ||
+    imageFile ||
+    videoFile;
+console.log('parsedResult', parsedResult);
+
+  const toggleDetails = (id) => {
+    setExpandedResults(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const getConfidenceColor = (confidence) => {
+    const score = confidence ? Math.round(confidence * 100) : 0;
+    if (score >= 90) return '#4CAF50';
+    return '#F44336';
+  };
+
+  const getVerdictButtonColor = (verdict) => {
+    if (verdict === 'True') return '#673AB7';
+    if (verdict === 'False') return '#DB7093';
+    return '#FF9800';
+  };
+
   return (
     <div className="app-container">
-      <div className="facts-checker-title">
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img
-            src={genAIIcon}
-            alt="GenAI Icon"
-            style={{ width: '32px', height: '32px' }}
-          />
-          <img
-            src={genAILogo}
-            alt="GenAI Logo"
-            style={{ width: 'auto', height: '18px' }}
-          />
+      <Box className="header-section deep-research-container">
+        <Typography variant="h3" className="header-title">
+          Deep Research Analysis
+        </Typography>
+        <Typography variant="subtitle1" className="header-subtitle">
+          Advanced fact-checking system powered by AI. Verify claims, analyze sources, and
+          get detailed insights with confidence scores.
+        </Typography>
+        <Box className="header-features">
+          <Box className="feature-chip" style={{ paddingLeft: '0' }}>
+            <AutoAwesomeIcon className="feature-chip-icon" />
+            <Typography className='feature-chip-text'>AI-Powered</Typography>
+          </Box>
+          <Box className="feature-chip">
+            <SecurityIcon className="feature-chip-icon" />
+            <Typography className='feature-chip-text'>Reliable Sources</Typography>
+          </Box>
+          <Box className="feature-chip">
+            <AutoGraphIcon className="feature-chip-icon" />
+            <Typography className='feature-chip-text'>Real-time Analysis</Typography>
+          </Box>
         </Box>
-      </div>
+      </Box>
+
       {!showResults && (
         <div className="facts-checker-container">
           <div className="facts-checker-content">
             {isLoading ? (
               <Loader />
             ) : (
-              <>
-                <h2 className="facts-checker-question">
-                  What would you like to verify?
-                </h2>
-                <div className="input-section">
-                  <TextField
-                    variant="outlined"
-                    placeholder="Enter something you want to verify..."
-                    multiline
-                    minRows={1}
-                    maxRows={6}
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Tooltip
-                              title="Add attachment (link, image, video)"
-                              arrow
-                              componentsProps={{
-                                tooltip: {
-                                  sx: {
-                                    fontSize: '1rem',
-                                  },
-                                },
-                                arrow: {
-                                  sx: {},
-                                },
-                              }}
-                            >
-                              <IconButton
-                                onClick={() => setOpenPopup(true)}
-                                sx={{ color: '#6C757D', p: '8px' }}
-                              >
-                                <AttachmentIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Button
-                              variant="contained"
-                              className="facts-checker-button"
-                              onClick={handleQuerySubmit}
-                              disabled={isLoading}
-                              sx={{ mb: 0 }}
-                            >
-                              <ArrowUpwardIcon />
-                            </Button>
-                          </Box>
-                        </InputAdornment>
-                      ),
-                      className: 'facts-checker-input',
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-                </div>
-              </>
+              <div className="landing-page">
+                <Box className="feature-cards">
+                  <Card className="feature-card">
+                    <CardContent>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                        <div className='feature-card-icon-container'>
+                          <ZoomInIcon className='feature-card-icon' />
+                        </div>
+                        <Typography variant="h6">Deeper Search</Typography>
+                      </div>
+                      <Typography variant="body2" style={{ color: '#000' }}>
+                        Advanced algorithms analyze multiple layers of information to uncover hidden insights.
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                  <Card className="feature-card">
+                    <CardContent>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                        <div className='feature-card-icon-container' style={{ background: '#F1E7FB' }}>
+                          <StorageIcon className='feature-card-icon' style={{ color: '#8539E0' }} />
+                        </div>
+                        <Typography variant="h6">Comprehensive Data</Typography>
+                      </div>
+                      <Typography variant="body2" style={{ color: '#000' }}>
+                        Access extensive databases and verified sources for thorough research analysis.
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                  <Card className="feature-card">
+                    <CardContent>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                        <div className='feature-card-icon-container'>
+                          <BoltIcon className='feature-card-icon' />
+                        </div>
+                        <Typography variant="h6">Real-time Processing</Typography>
+                      </div>
+                      <Typography variant="body2" style={{ color: '#000' }}>
+                        Get instant results with our high-performance processing system.
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
+              </div>
             )}
+            <div className="landing-page">
+              <Box className="search-section">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <Typography variant="h6" className="search-label">
+                    RESEARCH QUERY
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: '8px' }}>
+                    {totalLinks > 0 && (
+                      <Button
+                        onClick={() => setOpenDrawer(true)}
+                        sx={{
+                          color: '#495057',
+                          textTransform: 'none',
+                          fontSize: '14px',
+                          '&:hover': {
+                            backgroundColor: '#F8F9FA',
+                          },
+                        }}
+                        startIcon={
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            {faviconUrls.map((url, index) => (
+                              <img
+                                key={index}
+                                src={`https://www.google.com/s2/favicons?domain=${url}`}
+                                alt={`${url} favicon`}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  borderRadius: '50%',
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        }
+                      >
+                        {totalLinks} web sources
+                      </Button>
+                    )}
+                    {leftEventsState.length > 0 && (
+                      <Button
+                        onClick={() => setOpenTasksDrawer(true)}
+                        sx={{
+                          color: '#495057',
+                          textTransform: 'none',
+                          fontSize: '14px',
+                          '&:hover': {
+                            backgroundColor: '#F8F9FA',
+                          },
+                        }}
+                        startIcon={<AssignmentIcon />}
+                      >
+                        Tasks
+                      </Button>
+                    )}
+                  </Box>
+                </div>
+                <TextField
+                  variant="outlined"
+                  placeholder="Enter your research query or paste content to analyze..."
+                  multiline
+                  minRows={1}
+                  maxRows={6}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="search-input"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Button
+                            variant="contained"
+                            className="submit-button"
+                            onClick={handleQuerySubmit}
+                            disabled={isLoading || query === ''}
+                          >
+                            <ArrowUpwardIcon />
+                          </Button>
+                        </Box>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    width: '100%',
+                    marginBottom: '20px',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '5px',
+                    },
+                    '& textarea': {
+                      color: '#212529 !important',
+                      padding: '5px 0',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      resize: 'none',
+                      lineHeight: '1.5',
+                      fontSize: '1.1rem',
+                      '&::placeholder': {
+                        color: '#6c757d !important',
+                        opacity: 1,
+                      },
+                      '&::-webkit-scrollbar': {
+                        width: '6px',
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        background: '#f8f9fa',
+                        borderRadius: '3px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        background: '#ced4da',
+                        borderRadius: '3px',
+                      },
+                      '&::-webkit-scrollbar-thumb:hover': {
+                        background: '#adb5bd',
+                      },
+                    },
+                  }}
+                />
+                {parsedResult && (
+                  <Box className="feature-cards">
+                    {typeof parsedResult.explanation === 'string' && parsedResult.explanation.startsWith('[') ? (
+                      (() => {
+                        try {
+                          const explanationArray = JSON.parse(parsedResult.explanation);
+                          return explanationArray.map((item, index) => {
+                            const resultId = `item-${index}`;
+                            const confidenceColor = getConfidenceColor(item.confidence);
+                            const verdictButtonColor = getVerdictButtonColor(item.verdict);
+                            return (
+                              <Card key={resultId} className="feature-card" sx={{ position: 'relative', padding: '16px', width: '100%' }}>
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  sx={{
+                                    position: 'absolute',
+                                    top: '16px',
+                                    right: '16px',
+                                    backgroundColor: verdictButtonColor,
+                                    color: 'white',
+                                    textTransform: 'none',
+                                    borderRadius: '16px',
+                                    padding: '2px 10px',
+                                    fontSize: '0.8rem',
+                                    minWidth: 'auto',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                      backgroundColor: verdictButtonColor,
+                                      opacity: 0.9
+                                    }
+                                  }}
+                                >
+                                  {renderContent(item.verdict)}
+                                </Button>
+                                <CardContent sx={{ paddingTop: '40px' }}>
+                                  <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: '16px', color: '#000', lineHeight: '1.6' }}>
+                                    {renderContent(item.claim)}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                      <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                        <CircularProgress
+                                          variant="determinate"
+                                          value={item.confidence ? Math.round(item.confidence * 100) : 0}
+                                          size={50}
+                                          thickness={4}
+                                          sx={{ color: confidenceColor }}
+                                        />
+                                        <Box
+                                          sx={{
+                                            top: 0, left: 0, bottom: 0, right: 0,
+                                            position: 'absolute', display: 'flex',
+                                            alignItems: 'center', justifyContent: 'center',
+                                          }}
+                                        >
+                                          <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', fontWeight: 'bold', color: confidenceColor }}>
+                                            {item.confidence ? `${Math.round(item.confidence * 100)}%` : 'N/A'}
+                                          </Typography>
+                                        </Box>
+                                      </Box>
+                                      <Typography variant="body2" sx={{ color: '#000' }}>
+                                        Confidence Score
+                                      </Typography>
+                                    </Box>
+                                    <Button
+                                      endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                      sx={{ textTransform: 'none', color: '#673AB7' }}
+                                      onClick={() => toggleDetails(resultId)}
+                                    >
+                                      {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                                    </Button>
+                                  </Box>
+                                  {expandedResults[resultId] && (
+                                    <Box sx={{ marginTop: '20px' }}>
+                                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>
+                                        Explanation:
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}>
+                                        {renderContent(item.explanation)}
+                                      </Typography>
+                                      <Box sx={{ backgroundColor: '#F3F0FF', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'flex-start' }}>
+                                        <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                                        <Box>
+                                          <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}>
+                                            Our verification process
+                                          </Typography>
+                                          <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
+                                            This fact check was performed using our AI system trained on verified data sources, cross-referenced with expert knowledge and trusted publications.
+                                          </Typography>
+                                        </Box>
+                                      </Box>
+                                    </Box>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            );
+                          });
+                        } catch (e) {
+                          const resultId = 'single-error';
+                          const confidenceColor = getConfidenceColor(parsedResult.confidence);
+                          const verdictButtonColor = getVerdictButtonColor(parsedResult.verdict);
+                          return (
+                            <Card className="feature-card" sx={{ position: 'relative', padding: '16px', width: '100%' }}>
+                              <Button
+                                variant="contained" size="small"
+                                sx={{ position: 'absolute', top: '16px', right: '16px', backgroundColor: verdictButtonColor, color: 'white', textTransform: 'none', borderRadius: '16px', padding: '2px 10px', fontSize: '0.8rem', minWidth: 'auto', boxShadow: 'none', '&:hover': { backgroundColor: verdictButtonColor, opacity: 0.9}}}
+                              >
+                                {renderContent(parsedResult.verdict)}
+                              </Button>
+                              <CardContent sx={{ paddingTop: '40px' }}>
+                                <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: '16px', color: '#000', lineHeight: '1.6' }}>
+                                  {renderContent(parsedResult.claim)}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                      <CircularProgress variant="determinate" value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0} size={50} thickness={4} sx={{ color: confidenceColor }} />
+                                      <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', fontWeight: 'bold', color: confidenceColor }}>
+                                          {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                    <Typography variant="body2" sx={{ color: '#000' }}>Confidence Score</Typography>
+                                  </Box>
+                                  <Button endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />} sx={{ textTransform: 'none', color: '#673AB7' }} onClick={() => toggleDetails(resultId)}>
+                                    {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                                  </Button>
+                                </Box>
+                                {expandedResults[resultId] && (
+                                  <Box sx={{ marginTop: '20px' }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>Explanation:</Typography>
+                                    <Typography variant="body2" sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}>
+                                      {renderContent(parsedResult.explanation)}
+                                    </Typography>
+                                    <Box sx={{ backgroundColor: '#F3F0FF', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'flex-start' }}>
+                                      <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                                      <Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}>Our verification process</Typography>
+                                        <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
+                                          This fact check was performed using our AI system trained on verified data sources, cross-referenced with expert knowledge and trusted publications.
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Box>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        }
+                      })()
+                    ) : (
+                      (() => {
+                        const resultId = 'single-main';
+                        const confidenceColor = getConfidenceColor(parsedResult.confidence);
+                        const verdictButtonColor = getVerdictButtonColor(parsedResult.verdict);
+                        return (
+                          <Card className="feature-card"
+                            sx={{ position: 'relative', padding: '16px', width: '100%' }}>
+                            <Button
+                              variant="contained" size="small"
+                              sx={{ position: 'absolute', top: '16px', right: '16px', backgroundColor: verdictButtonColor, color: 'white', textTransform: 'none', borderRadius: '16px', padding: '2px 10px', fontSize: '0.8rem', minWidth: 'auto', boxShadow: 'none', '&:hover': { backgroundColor: verdictButtonColor, opacity: 0.9}}}
+                            >
+                              {renderContent(parsedResult.verdict)}
+                            </Button>
+                            <CardContent sx={{ paddingTop: '40px' }}>
+                              <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: '16px', color: '#000', lineHeight: '1.6' }}>
+                                {renderContent(parsedResult.claim)}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                    <CircularProgress variant="determinate" value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0} size={50} thickness={4} sx={{ color: confidenceColor }} />
+                                    <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', fontWeight: 'bold', color: confidenceColor }}>
+                                        {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                  <Typography variant="body2" sx={{ color: '#000' }}>Confidence Score</Typography>
+                                </Box>
+                                <Button endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />} sx={{ textTransform: 'none', color: '#673AB7' }} onClick={() => toggleDetails(resultId)}>
+                                  {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                                </Button>
+                              </Box>
+                              {expandedResults[resultId] && (
+                                <Box sx={{ marginTop: '20px' }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>Explanation:</Typography>
+                                  <Typography variant="body2" sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}>
+                                    {renderContent(parsedResult.explanation)}
+                                  </Typography>
+                                  <Box sx={{ backgroundColor: '#F3F0FF', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'flex-start' }}>
+                                    <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                                    <Box>
+                                      <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}>Our verification process</Typography>
+                                      <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
+                                        This fact check was performed using our AI system trained on verified data sources, cross-referenced with expert knowledge and trusted publications.
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })()
+                    )}
+                  </Box>
+                )}
+                <Box className="social-buttons">
+                  <Button
+                    variant="outlined"
+                    startIcon={<TwitterIcon />}
+                    className={`social-button ${xLink.trim() ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    X (Twitter)
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<InstagramIcon />}
+                    className={`social-button ${instagramLink.trim() ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    Instagram
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FacebookIcon />}
+                    className={`social-button ${facebookLink.trim() ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    Facebook
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<YouTubeIcon />}
+                    className={`social-button ${youtubeLink.trim() ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    YouTube
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<LinkIcon />}
+                    className={`social-button ${genericLink.trim() ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    URL
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ImageIcon />}
+                    className={`social-button ${imageFile ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    Image
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<VideocamIcon />}
+                    className={`social-button ${videoFile ? 'social-button-active' : ''}`}
+                    onClick={() => setOpenPopup(true)}
+                  >
+                    Video
+                  </Button>
+                </Box>
+              </Box>
+            </div>
           </div>
         </div>
       )}
@@ -904,71 +1339,6 @@ function App() {
               )}
             </div>
             <div className="response-card sources-card">
-              <div className="response-content">
-                <Box sx={{ display: 'flex', gap: '8px' }}>
-                  {totalLinks > 0 && (
-                    <Button
-                      onClick={() => setOpenDrawer(true)}
-                      sx={{
-                        backgroundColor: '#FFFFFF',
-                        color: '#495057',
-                        border: '1px solid #DEE2E6',
-                        borderRadius: '16px',
-                        padding: '6px 12px',
-                        textTransform: 'none',
-                        fontSize: '14px',
-                        '&:hover': {
-                          backgroundColor: '#F8F9FA',
-                        },
-                      }}
-                      startIcon={
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          {faviconUrls.map((url, index) => (
-                            <img
-                              key={index}
-                              src={`https://www.google.com/s2/favicons?domain=${url}`}
-                              alt={`${url} favicon`}
-                              style={{
-                                width: '16px',
-                                height: '16px',
-                                borderRadius: '50%',
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      }
-                    >
-                      {totalLinks} web pages
-                    </Button>
-                  )}
-                  {leftEventsState.length > 0 && (
-                    <Button
-                      onClick={() => setOpenTasksDrawer(true)}
-                      sx={{
-                        backgroundColor: '#FFFFFF',
-                        color: '#495057',
-                        border: '1px solid #DEE2E6',
-                        borderRadius: '16px',
-                        padding: '6px 12px',
-                        textTransform: 'none',
-                        fontSize: '14px',
-                        '&:hover': {
-                          backgroundColor: '#F8F9FA',
-                        },
-                      }}
-                      startIcon={<AssignmentIcon />}
-                    >
-                      Tasks
-                    </Button>
-                  )}
-                </Box>
-              </div>
               <Drawer
                 anchor="right"
                 open={openDrawer}
@@ -1149,127 +1519,190 @@ function App() {
               </Drawer>
             </div>
           </div>
-          {parsedResult && (
-            <div>
-              {Array.isArray(parsedResult) ? (
-                parsedResult.map((item, index) => {
-                  let itemBackgroundColor = '#0056e0';
-                  if (item.verdict === 'False') {
-                    itemBackgroundColor = '#E72929';
-                  } else if (item.verdict === 'True') {
-                    itemBackgroundColor = '#347928';
-                  }
-                  return (
-                    <div
-                      key={index}
-                      ref={index === parsedResult.length - 1 ? bottomRef : null}
-                      className="response-card-finalResult"
-                      style={{ backgroundColor: itemBackgroundColor, marginBottom: '15px' }}
-                    >
-                      <div className="response-content" style={{ margin: '0', padding: '16px' }}>
-                        <h3>Fact-Checking Result {parsedResult.length > 1 ? ` ${index + 1}` : ''}</h3>
-                        <p><strong>Claim:</strong> {renderContent(item.claim)}</p>
-                        <p><strong>Verdict:</strong> {renderContent(item.verdict)}</p>
-                        <p><strong>Explanation:</strong> {renderContent(item.explanation)}</p>
-                        <p><strong>Confidence Level:</strong> {item.confidence ? Math.round(item.confidence * 10) : 'N/A'}</p>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                (() => {
-                  let finalResultBackgroundColor = '#0056e0';
-                  if (parsedResult.verdict === 'False') {
-                    finalResultBackgroundColor = '#E72929';
-                  } else if (parsedResult.verdict === 'True') {
-                    finalResultBackgroundColor = '#347928';
-                  }
-                  return (
-                    <div
-                      ref={bottomRef}
-                      className="response-card-finalResult"
-                      style={{ backgroundColor: finalResultBackgroundColor }}
-                    >
-                      <div className="response-content" style={{ margin: '0', padding: '16px' }}>
-                        <h3>Fact-Checking Result</h3>
-                        <p><strong>Claim:</strong> {renderContent(parsedResult.claim)}</p>
-                        <p><strong>Verdict:</strong> {renderContent(parsedResult.verdict)}</p>
-                        <p><strong>Explanation:</strong> {renderContent(parsedResult.explanation)}</p>
-                        <p><strong>Confidence Level:</strong> {parsedResult.confidence ? Math.round(parsedResult.confidence * 10) : 'N/A'}</p>
-                      </div>
-                    </div>
-                  );
-                })()
-              )}
-            </div>
-          )}
         </div>
       )}
       {showResults && (
         <div className="input-section bottom-input">
-          <TextField
-            variant="outlined"
-            placeholder="Enter something you want to verify..."
-            multiline
-            minRows={1}
-            maxRows={6}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Tooltip
-                      title="Add attachment (link, image, video)"
-                      arrow
-                      componentsProps={{
-                        tooltip: {
-                          sx: {
-                            fontSize: '0.9rem',
-                          },
-                        },
-                        arrow: {
-                          sx: {},
-                        },
-                      }}
-                    >
-                      <IconButton
-                        onClick={() => setOpenPopup(true)}
-                        sx={{ color: '#6C757D', p: '8px' }}
+          <Box className="search-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <Typography variant="h6" className="search-label">
+                RESEARCH QUERY
+              </Typography>
+              <Box sx={{ display: 'flex', gap: '8px' }}>
+                {totalLinks > 0 && (
+                  <Button
+                    onClick={() => setOpenDrawer(true)}
+                    sx={{
+                      color: '#495057',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      '&:hover': {
+                        backgroundColor: '#F8F9FA',
+                      },
+                    }}
+                    startIcon={
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
                       >
-                        <AttachmentIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Button
-                      variant="contained"
-                      className="facts-checker-button"
-                      onClick={handleQuerySubmit}
-                      disabled={
-                        isLoading ||
-                        (!query.trim() &&
-                          !xLink.trim() &&
-                          !facebookLink.trim() &&
-                          !instagramLink.trim() &&
-                          !youtubeLink.trim() &&
-                          !genericLink.trim() &&
-                          !imageFile &&
-                          !videoFile)
-                      }
-                      sx={{ marginBottom: 0 }}
-                    >
-                      {isLoading ? (
-                        <CircularProgress size={24} sx={{ color: '#ffffff' }} />
-                      ) : (
-                        <ArrowUpwardIcon sx={{ color: '#ffffff' }} />
-                      )}
-                    </Button>
-                  </Box>
-                </InputAdornment>
-              ),
-              className: 'facts-checker-input',
-            }}
-            sx={{ marginBottom: 2 }}
-          />
+                        {faviconUrls.map((url, index) => (
+                          <img
+                            key={index}
+                            src={`https://www.google.com/s2/favicons?domain=${url}`}
+                            alt={`${url} favicon`}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    }
+                  >
+                    {totalLinks} web sources
+                  </Button>
+                )}
+                {leftEventsState.length > 0 && (
+                  <Button
+                    onClick={() => setOpenTasksDrawer(true)}
+                    sx={{
+                      color: '#495057',
+                      textTransform: 'none',
+                      fontSize: '14px',
+                      '&:hover': {
+                        backgroundColor: '#F8F9FA',
+                      },
+                    }}
+                    startIcon={<AssignmentIcon />}
+                  >
+                    Tasks
+                  </Button>
+                )}
+              </Box>
+            </div>
+            <TextField
+              variant="outlined"
+              placeholder="Enter your research query or paste content to analyze..."
+              multiline
+              minRows={1}
+              maxRows={6}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="search-input"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5' }}>
+                      <Button
+                        variant="contained"
+                        className="submit-button"
+                        onClick={handleQuerySubmit}
+                        disabled={isLoading || query === ''}
+                      >
+                        <ArrowUpwardIcon />
+                      </Button>
+                    </Box>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: '100%',
+                marginBottom: '20px',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '5px',
+                },
+                '& textarea': {
+                  color: '#212529 !important',
+                  padding: '5px 0',
+                  maxHeight: '250px',
+                  overflowY: 'auto',
+                  resize: 'none',
+                  lineHeight: '1.5',
+                  fontSize: '1.1rem',
+                  '&::placeholder': {
+                    color: '#6c757d !important',
+                    opacity: 1,
+                  },
+                  '&::-webkit-scrollbar': {
+                    width: '6px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f8f9fa',
+                    borderRadius: '3px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#ced4da',
+                    borderRadius: '3px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#adb5bd',
+                  },
+                },
+              }}
+            />
+            <Box className="social-buttons">
+              <Button
+                variant="outlined"
+                startIcon={<TwitterIcon />}
+                className={`social-button ${xLink.trim() ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                X (Twitter)
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<InstagramIcon />}
+                className={`social-button ${instagramLink.trim() ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                Instagram
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<FacebookIcon />}
+                className={`social-button ${facebookLink.trim() ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                Facebook
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<YouTubeIcon />}
+                className={`social-button ${youtubeLink.trim() ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                YouTube
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<LinkIcon />}
+                className={`social-button ${genericLink.trim() ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                URL
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ImageIcon />}
+                className={`social-button ${imageFile ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                Image
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<VideocamIcon />}
+                className={`social-button ${videoFile ? 'social-button-active' : ''}`}
+                onClick={() => setOpenPopup(true)}
+              >
+                Video
+              </Button>
+            </Box>
+          </Box>
         </div>
       )}
     </div>
