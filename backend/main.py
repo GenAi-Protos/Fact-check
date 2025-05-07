@@ -18,7 +18,7 @@ def main():
         "app:app", 
         host=settings.API_HOST, 
         port=settings.API_PORT,
-        reload=settings.DEBUG
+        reload=True
     )
 
 if __name__ == "__main__":
