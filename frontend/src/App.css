@@ -3,12 +3,23 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  overflow-y: scroll;
   color: #212529;
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Deep Research Container */
+.deep-research-container {
+  text-align: left;
+  background: linear-gradient(to right, #EEF2FF, #F3E8FF);
+  border-radius: 12px;
+  padding: 26px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto 20px;
   box-sizing: border-box;
 }
 
@@ -20,30 +31,17 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
-  overflow-y: auto;
 }
 
-/* Deep Research Container (new container at the top) */
-.deep-research-container {
-  text-align: left;
-  background: linear-gradient(to right, #EEF2FF, #F3E8FF);
-  border-radius: 12px;
-  padding: 26px;
-  margin-bottom: 20px;
-  position: relative;
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-/* Header Section (used by landing page, now removed from sticky wrapper) */
+/* Header Section */
 .header-section {
   text-align: left;
   background: linear-gradient(to right, #e5ecff, #F3E8FF);
   border-radius: 12px;
   padding: 26px;
-  position: relative;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .header-title {
@@ -105,7 +103,7 @@
   margin-right: 0.5rem;
 }
 
-/* Header Icons (new styles for the icons on the right) */
+/* Header Icons */
 .header-icons {
   position: absolute;
   top: 32px;
@@ -131,11 +129,19 @@
 }
 
 /* Feature Cards Section */
-.feature-cards {
+.feature-cards, .result-cards {
   display: flex;
   gap: 20px;
   max-width: 1000px;
   width: 100%;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
+.result-cards {
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .feature-card {
@@ -145,10 +151,6 @@
   transition: transform 0.5s ease-in-out;
   display: flex;
   flex-direction: column;
-}
-.result-card {
-  width: 50%;
-  margin: 0 auto;
 }
 
 .feature-card:hover {
@@ -173,16 +175,16 @@
   font-size: 1.2rem;
   font-weight: 600;
   color: #212529;
-  margin: 0; /* Remove default margin to avoid extra space */
+  margin: 0;
 }
 
 .feature-card-description {
   font-size: 0.9rem;
   color: #6c757d;
   margin: 0;
-  flex: 1; /* Allow the description to take remaining space */
+  flex: 1;
   display: flex;
-  align-items: center; /* Vertically center the description text */
+  align-items: center;
 }
 
 /* Search Section */
@@ -193,6 +195,7 @@
   padding: 20px;
   max-width: 1000px;
   width: 100%;
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
@@ -262,9 +265,10 @@
   background-color: #F2F3F5 !important;
   transition: background-color 0.2s ease-in-out;
 }
+
 .social-button-active {
   background-color: #0d6efd !important;
-    border-radius: 10px;
+  border-radius: 10px;
   color: #fff !important;
   text-transform: none;
   border: none !important;
@@ -286,11 +290,10 @@
   padding: 0 !important;
 }
 
-/* Existing styles (unchanged) */
+/* Facts Checker Container */
 .facts-checker-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
@@ -302,15 +305,13 @@
 }
 
 .facts-checker-content {
-  margin-top: 20px !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   max-width: 1000px;
   width: 100%;
-  gap: 16px;
   margin: 0 auto;
+  gap: 16px;
 }
 
 .facts-checker-question {
@@ -340,7 +341,6 @@
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
-  padding: 10px;
   border-radius: 10px;
 }
 
@@ -423,10 +423,7 @@
 
 .results-wrapper {
   flex-grow: 1;
-  height: auto;
   overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
@@ -434,40 +431,46 @@
 
 .searched-query {
   font-size: 1.1rem;
-  margin: 16px 0;
   color: #212529;
   text-align: right;
   width: fit-content;
   margin-left: auto;
-  padding: 15px;
+  padding: 10px;
   border-radius: 10px;
   margin-bottom: 10px;
-  display: flex;
-  justify-content: end;
 }
 
 .results-container {
-  max-width: 1000px;
-  height: 70vh;
+  max-width: 930px;
   margin: 0 auto;
   padding: 10px;
   background: #ffffff;
   border-radius: 10px;
   display: flex;
-  width: 100%;
   color: #212529;
+width: 100%;
   border: 1px solid #dee2e6;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  justify-content: center;
+  height: 70vh;
+}
+
+.resultContainer {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 0;
 }
 
 .left-column {
+  border-right: 1px solid #ced4da;
   flex: 1;
   min-width: 100px;
   overflow-y: auto;
   height: 70vh;
-  padding: 0 5px;
+  padding: 0 10px;
 }
 
 .right-column {
@@ -508,7 +511,7 @@
 .section-title {
   font-size: 1.3rem;
   margin-bottom: 16px;
-  color: #495057;
+  color: #141415;
   margin-left: 50px;
   margin-top: 15px;
 }
@@ -584,16 +587,6 @@
   width: 100%;
   margin: 0 auto;
   background: #ffffff;
-}
-
-.resultContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 0;
-  max-width: 1000px;
-  margin: 0 auto;
 }
 
 .sources-card {
@@ -754,10 +747,22 @@
 }
 
 @media (max-width: 900px) {
-  .results-container {
-    flex-direction: column;
+  .app-container,
+  .deep-research-container,
+  .landing-page,
+  .facts-checker-container,
+  .facts-checker-content,
+  .results-wrapper,
+  .search-section,
+  .results-container,
+  .resultContainer {
     max-width: 100%;
     width: 90%;
+    padding: 15px;
+  }
+
+  .results-container {
+    flex-direction: column;
   }
 
   .input-section,
@@ -781,7 +786,7 @@
 
   .feature-card {
     width: 100%;
-    min-height: 180px; /* Adjust for smaller screens */
+    min-height: 180px;
   }
 
   .header-icons {
@@ -789,18 +794,6 @@
     margin-top: 1rem;
     justify-content: flex-start;
     gap: 0.75rem;
-  }
-
-  .app-container,
-  .landing-page,
-  .deep-research-container,
-  .facts-checker-container,
-  .facts-checker-content,
-  .results-wrapper,
-  .search-section {
-    max-width: 100%;
-    width: 90%;
-    padding: 15px;
   }
 
   .header-title {
@@ -824,6 +817,20 @@
 }
 
 @media (max-width: 600px) {
+  .app-container,
+  .deep-research-container,
+  .landing-page,
+  .facts-checker-container,
+  .facts-checker-content,
+  .results-wrapper,
+  .search-section,
+  .results-container,
+  .resultContainer {
+    max-width: 100%;
+    width: 95%;
+    padding: 10px;
+  }
+
   .facts-checker-question {
     font-size: 1.5rem;
   }
@@ -831,7 +838,7 @@
   .input-section,
   .bottom-input {
     max-width: 100%;
-    width: 90%;
+    width: 95%;
   }
 
   .facts-checker-input {
@@ -841,10 +848,6 @@
   .response-card pre,
   .event-card pre {
     font-size: 0.8rem;
-  }
-
-  .results-container {
-    width: 95%;
   }
 
   .header-title {
@@ -872,18 +875,6 @@
     gap: 0.5rem;
   }
 
-  .app-container,
-  .landing-page,
-  .deep-research-container,
-  .facts-checker-container,
-  .facts-checker-content,
-  .results-wrapper,
-  .search-section {
-    max-width: 100%;
-    width: 95%;
-    padding: 10px;
-  }
-
   .header-features {
     flex-direction: column;
     gap: 10px;
@@ -894,7 +885,7 @@
   }
 
   .feature-card {
-    min-height: 160px; /* Further adjust for very small screens */
+    min-height: 160px;
   }
 }
 
@@ -926,8 +917,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0 16px;
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
+  padding: 0 16px;
 }
