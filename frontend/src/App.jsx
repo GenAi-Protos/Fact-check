@@ -40,6 +40,12 @@ import YouTubeIcon from '@mui/icons-material/YouTube';
 import LinkIcon from '@mui/icons-material/Link';
 import ImageIcon from '@mui/icons-material/Image';
 import VideocamIcon from '@mui/icons-material/Videocam';
+import { IoFlash } from "react-icons/io5";
+import { FaDatabase } from "react-icons/fa";
+import { RiZoomInFill } from "react-icons/ri";
+import { FaChartLine } from "react-icons/fa6";
+import { FaBahai } from "react-icons/fa6";
+import { MdOutlineSecurity } from "react-icons/md";
 import genAIIcon from './assets/genAI_icon.png';
 import genAILogo from './assets/genaiLogo.png';
 import './App.css';
@@ -671,7 +677,7 @@ function App() {
     <div className="app-container">
       <Box className="header-section deep-research-container">
         <Typography variant="h3" className="header-title">
-          Deep Research Analysis
+          Fact Check
         </Typography>
         <Typography variant="subtitle1" className="header-subtitle">
           Advanced fact-checking system powered by AI. Verify claims, analyze sources, and
@@ -679,15 +685,15 @@ function App() {
         </Typography>
         <Box className="header-features">
           <Box className="feature-chip" style={{ paddingLeft: '0' }}>
-            <AutoAwesomeIcon className="feature-chip-icon" />
+            <FaBahai className="feature-chip-icon" />
             <Typography className='feature-chip-text'>AI-Powered</Typography>
           </Box>
           <Box className="feature-chip">
-            <SecurityIcon className="feature-chip-icon" />
+            <MdOutlineSecurity className="feature-chip-icon" />
             <Typography className='feature-chip-text'>Reliable Sources</Typography>
           </Box>
           <Box className="feature-chip">
-            <AutoGraphIcon className="feature-chip-icon" />
+            <FaChartLine className="feature-chip-icon" />
             <Typography className='feature-chip-text'>Real-time Analysis</Typography>
           </Box>
           </Box>
@@ -712,7 +718,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container'>
-                          <ZoomInIcon className='feature-card-icon' />
+                          <RiZoomInFill className='feature-card-icon' />
                         </div>
                         <Typography variant="h6">Deeper Search</Typography>
                       </div>
@@ -725,7 +731,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container' style={{ background: '#F1E7FB' }}>
-                          <StorageIcon className='feature-card-icon' style={{ color: '#8539E0' }} />
+                          <FaDatabase className='feature-card-icon' style={{ color: '#8539E0' }} />
                         </div>
                         <Typography variant="h6">Comprehensive Data</Typography>
                       </div>
@@ -738,7 +744,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container'>
-                          <BoltIcon className='feature-card-icon' />
+                          <IoFlash className='feature-card-icon' />
                         </div>
                         <Typography variant="h6">Real-time Processing</Typography>
                       </div>
