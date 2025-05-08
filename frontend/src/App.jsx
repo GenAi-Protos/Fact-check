@@ -713,231 +713,239 @@ function App() {
               <Loader />
             ) : (
               <div className="landing-page">
-                <Box className="feature-cards">
-                  <Card className="feature-card">
-                    <CardContent>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-                        <div className='feature-card-icon-container'>
-                          <RiZoomInFill className='feature-card-icon' />
+                {/* Empty space at the top for better layout */}
+                <div className="spacer"></div>
+                
+                {/* Feature cards in the middle section */}
+                <div className="feature-cards-wrapper">
+                  <Box className="feature-cards">
+                    <Card className="feature-card">
+                      <CardContent>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                          <div className='feature-card-icon-container'>
+                            <RiZoomInFill className='feature-card-icon' />
+                          </div>
+                          <Typography variant="h6">Deeper Search</Typography>
                         </div>
-                        <Typography variant="h6">Deeper Search</Typography>
-                      </div>
-                      <Typography variant="body2" style={{ color: '#000' }}>
-                        Advanced algorithms analyze multiple layers of information to uncover hidden insights.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                  <Card className="feature-card">
-                    <CardContent>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-                        <div className='feature-card-icon-container' style={{ background: '#F1E7FB' }}>
-                          <FaDatabase className='feature-card-icon' style={{ color: '#8539E0' }} />
+                        <Typography variant="body2" style={{ color: '#000' }}>
+                          Advanced algorithms analyze multiple layers of information to uncover hidden insights.
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                    <Card className="feature-card">
+                      <CardContent>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                          <div className='feature-card-icon-container' style={{ background: '#F1E7FB' }}>
+                            <FaDatabase className='feature-card-icon' style={{ color: '#8539E0' }} />
+                          </div>
+                          <Typography variant="h6">Comprehensive Data</Typography>
                         </div>
-                        <Typography variant="h6">Comprehensive Data</Typography>
-                      </div>
-                      <Typography variant="body2" style={{ color: '#000' }}>
-                        Access extensive databases and verified sources for thorough research analysis.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                  <Card className="feature-card">
-                    <CardContent>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-                        <div className='feature-card-icon-container'>
-                          <IoFlash className='feature-card-icon' />
+                        <Typography variant="body2" style={{ color: '#000' }}>
+                          Access extensive databases and verified sources for thorough research analysis.
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                    <Card className="feature-card">
+                      <CardContent>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                          <div className='feature-card-icon-container'>
+                            <IoFlash className='feature-card-icon' />
+                          </div>
+                          <Typography variant="h6">Real-time Processing</Typography>
                         </div>
-                        <Typography variant="h6">Real-time Processing</Typography>
-                      </div>
-                      <Typography variant="body2" style={{ color: '#000' }}>
-                        Get instant results with our high-performance processing system.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Box>
-              </div>
-            )}
-            <div className="landing-page">
-              <Box className="search-section">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                  <Typography variant="h6" className="search-label">
-                    RESEARCH QUERY
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: '8px' }}>
-                    {totalLinks > 0 && (
-                      <Button
-                        onClick={() => setOpenDrawer(true)}
-                        sx={{
-                          color: '#495057',
-                          textTransform: 'none',
-                          fontSize: '14px',
-                          '&:hover': {
-                            backgroundColor: '#F8F9FA',
-                          },
-                        }}
-                        startIcon={
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            {faviconUrls.map((url, index) => (
-                              <img
-                                key={index}
-                                src={`https://www.google.com/s2/favicons?domain=${url}`}
-                                alt={`${url} favicon`}
-                                style={{
-                                  width: '16px',
-                                  height: '16px',
-                                  borderRadius: '50%',
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        }
-                      >
-                        {totalLinks} web sources
-                      </Button>
-                    )}
-                    {leftEventsState.length > 0 && (
-                      <Button
-                        onClick={() => setOpenTasksDrawer(true)}
-                        sx={{
-                          color: '#495057',
-                          textTransform: 'none',
-                          fontSize: '14px',
-                          '&:hover': {
-                            backgroundColor: '#F8F9FA',
-                          },
-                        }}
-                        startIcon={<AssignmentIcon />}
-                      >
-                        Tasks
-                      </Button>
-                    )}
+                        <Typography variant="body2" style={{ color: '#000' }}>
+                          Get instant results with our high-performance processing system.
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   </Box>
                 </div>
-                <TextField
-                  variant="outlined"
-                  placeholder="Enter your research query or paste content to analyze..."
-                  multiline
-                  minRows={1}
-                  maxRows={6}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="search-input"
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                
+                {/* Bottom search section */}
+                <div className="search-wrapper">
+                  <Box className="search-section">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <Typography variant="h6" className="search-label">
+                        RESEARCH QUERY
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: '8px' }}>
+                        {totalLinks > 0 && (
                           <Button
-                            variant="contained"
-                            className="submit-button"
-                            onClick={handleQuerySubmit}
-                            disabled={isLoading || query === ''}
+                            onClick={() => setOpenDrawer(true)}
+                            sx={{
+                              color: '#495057',
+                              textTransform: 'none',
+                              fontSize: '14px',
+                              '&:hover': {
+                                backgroundColor: '#F8F9FA',
+                              },
+                            }}
+                            startIcon={
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                {faviconUrls.map((url, index) => (
+                                  <img
+                                    key={index}
+                                    src={`https://www.google.com/s2/favicons?domain=${url}`}
+                                    alt={`${url} favicon`}
+                                    style={{
+                                      width: '16px',
+                                      height: '16px',
+                                      borderRadius: '50%',
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            }
                           >
-                            <ArrowUpwardIcon />
+                            {totalLinks} web sources
                           </Button>
-                        </Box>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    width: '100%',
-                    marginBottom: '20px',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '5px',
-                    },
-                    '& textarea': {
-                      color: '#212529 !important',
-                      padding: '5px 0',
-                      maxHeight: '250px',
-                      overflowY: 'auto',
-                      resize: 'none',
-                      lineHeight: '1.5',
-                      fontSize: '1.1rem',
-                      '&::placeholder': {
-                        color: '#6c757d !important',
-                        opacity: 1,
-                      },
-                      '&::-webkit-scrollbar': {
-                        width: '6px',
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        background: '#f8f9fa',
-                        borderRadius: '3px',
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        background: '#ced4da',
-                        borderRadius: '3px',
-                      },
-                      '&::-webkit-scrollbar-thumb:hover': {
-                        background: '#adb5bd',
-                      },
-                    },
-                  }}
-                />
-                <Box className="social-buttons">
-                  <Button
-                    variant="outlined"
-                    startIcon={<TwitterIcon />}
-                    className={`social-button ${xLink.trim() ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    X (Twitter)
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<InstagramIcon />}
-                    className={`social-button ${instagramLink.trim() ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    Instagram
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<FacebookIcon />}
-                    className={`social-button ${facebookLink.trim() ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    Facebook
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<YouTubeIcon />}
-                    className={`social-button ${youtubeLink.trim() ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    YouTube
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<LinkIcon />}
-                    className={`social-button ${genericLink.trim() ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    URL
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ImageIcon />}
-                    className={`social-button ${imageFile ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    Image
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    startIcon={<VideocamIcon />}
-                    className={`social-button ${videoFile ? 'social-button-active' : ''}`}
-                    onClick={() => setOpenPopup(true)}
-                  >
-                    Video
-                  </Button>
-                </Box>
-              </Box>
-            </div>
+                        )}
+                        {leftEventsState.length > 0 && (
+                          <Button
+                            onClick={() => setOpenTasksDrawer(true)}
+                            sx={{
+                              color: '#495057',
+                              textTransform: 'none',
+                              fontSize: '14px',
+                              '&:hover': {
+                                backgroundColor: '#F8F9FA',
+                              },
+                            }}
+                            startIcon={<AssignmentIcon />}
+                          >
+                            Tasks
+                          </Button>
+                        )}
+                      </Box>
+                    </div>
+                    <TextField
+                      variant="outlined"
+                      placeholder="Enter your research query or paste content to analyze..."
+                      multiline
+                      minRows={1}
+                      maxRows={6}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="search-input"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Button
+                                variant="contained"
+                                className="submit-button"
+                                onClick={handleQuerySubmit}
+                                disabled={isLoading || query === ''}
+                              >
+                                <ArrowUpwardIcon />
+                              </Button>
+                            </Box>
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        width: '100%',
+                        marginBottom: '20px',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '8px',
+                        },
+                        '& textarea': {
+                          color: '#212529 !important',
+                          padding: '5px 0',
+                          maxHeight: '250px',
+                          overflowY: 'auto',
+                          resize: 'none',
+                          lineHeight: '1.5',
+                          fontSize: '1.1rem',
+                          '&::placeholder': {
+                            color: '#6c757d !important',
+                            opacity: 1,
+                          },
+                          '&::-webkit-scrollbar': {
+                            width: '6px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: '#f8f9fa',
+                            borderRadius: '3px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: '#ced4da',
+                            borderRadius: '3px',
+                          },
+                          '&::-webkit-scrollbar-thumb:hover': {
+                            background: '#adb5bd',
+                          },
+                        },
+                      }}
+                    />
+                    <Box className="social-buttons">
+                      <Button
+                        variant="outlined"
+                        startIcon={<TwitterIcon />}
+                        className={`social-button ${xLink.trim() ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        X (Twitter)
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<InstagramIcon />}
+                        className={`social-button ${instagramLink.trim() ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        Instagram
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<FacebookIcon />}
+                        className={`social-button ${facebookLink.trim() ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        Facebook
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<YouTubeIcon />}
+                        className={`social-button ${youtubeLink.trim() ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        YouTube
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<LinkIcon />}
+                        className={`social-button ${genericLink.trim() ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        URL
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<ImageIcon />}
+                        className={`social-button ${imageFile ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        Image
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<VideocamIcon />}
+                        className={`social-button ${videoFile ? 'social-button-active' : ''}`}
+                        onClick={() => setOpenPopup(true)}
+                      >
+                        Video
+                      </Button>
+                    </Box>
+                  </Box>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
