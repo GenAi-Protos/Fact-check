@@ -401,40 +401,76 @@ function App() {
       }
 
       if (accumulatedFinalContent) {
+        let dataToProcess = null;
+        let parseErrorMessage = 'Failed to parse the final result from the stream.';
+        let finalErrorForLogging = null;
+
         try {
-          const parsedFinal = JSON.parse(accumulatedFinalContent.trim());
+          // Attempt 1: Direct parse
+          dataToProcess = JSON.parse(accumulatedFinalContent.trim());
+        } catch (e1) {
+          finalErrorForLogging = e1; // Store initial error
+          // Attempt 2: Extract array if direct parse failed.
+          // Regex looks for optional leading non-[ text (non-greedy), then captures a [...] block.
+          const arrayMatchRegex = /(?:^[^\[]*?)(\[[\s\S]*\])/;
+          const match = accumulatedFinalContent.match(arrayMatchRegex);
+          
+          if (match && match[1]) {
+            const jsonArrayString = match[1];
+            try {
+              const extractedResult = JSON.parse(jsonArrayString);
+              if (Array.isArray(extractedResult)) {
+                dataToProcess = extractedResult; // Successfully extracted and parsed an array
+                finalErrorForLogging = null; // Clear error as we succeeded this path
+              } else {
+                // Parsed, but not an array. Keep finalErrorForLogging from e1.
+              }
+            } catch (e2) {
+              // Error during extraction parse. e1 is still the primary failure.
+              console.warn('Secondary parse attempt (extraction) also failed:', e2);
+              // finalErrorForLogging remains e1.
+            }
+          }
+          // If dataToProcess is still null here, all attempts failed or yielded unsuitable results.
+        }
+
+        if (dataToProcess !== null) {
+          setFinalResult(dataToProcess); // Use the successfully parsed data
+
           let normalizedResult;
-          if (Array.isArray(parsedFinal)) {
-            normalizedResult = parsedFinal;
-          } else if (parsedFinal.findings || parsedFinal.source_links) {
+          if (Array.isArray(dataToProcess)) {
+            normalizedResult = dataToProcess;
+          } else if (dataToProcess.findings || dataToProcess.source_links) {
             normalizedResult = {
               claim: selectedClaims.join(', '),
               verdict: 'Unknown',
-              explanation: JSON.stringify(parsedFinal, null, 2),
+              explanation: JSON.stringify(dataToProcess, null, 2),
               confidence: 0,
             };
-          } else if (parsedFinal.claim && parsedFinal.verdict) {
-            normalizedResult = parsedFinal;
+          } else if (dataToProcess.claim && dataToProcess.verdict) {
+            normalizedResult = dataToProcess; // It's a single claim object
           } else {
+            // Fallback for unknown object structure
             normalizedResult = {
               claim: selectedClaims.join(', '),
               verdict: 'Unknown',
-              explanation: JSON.stringify(parsedFinal, null, 2),
+              explanation: JSON.stringify(dataToProcess, null, 2),
               confidence: 0,
             };
           }
-          setFinalResult(parsedFinal);
           setParsedResult(normalizedResult);
-          if (parsedFinal.citations && Array.isArray(parsedFinal.citations)) {
-            parsedFinal.citations.forEach((url) => {
+
+          // Handle citations and source_links from dataToProcess
+          if (dataToProcess.citations && Array.isArray(dataToProcess.citations)) {
+            dataToProcess.citations.forEach((url) => {
               if (typeof url === 'string') {
                 const category = getUrlCategory(url);
                 addCategorizedUrl(category, url);
               }
             });
           }
-          if (parsedFinal.source_links) {
-            Object.entries(parsedFinal.source_links).forEach(([platform, links]) => {
+          if (dataToProcess.source_links) {
+            Object.entries(dataToProcess.source_links).forEach(([platform, links]) => {
               const urls = Array.isArray(links) ? links : [links];
               urls.forEach((url) => {
                 if (typeof url === 'string') {
@@ -444,18 +480,19 @@ function App() {
               });
             });
           }
-        } catch (finalParseError) {
+        } else {
+          // All parsing attempts failed
           console.error(
             'Error parsing final accumulated content:',
-            finalParseError,
+            finalErrorForLogging, 
             'Content:',
             accumulatedFinalContent
           );
-          setError('Failed to parse the final result from the stream.');
+          setError(parseErrorMessage);
           setParsedResult({
             claim: selectedClaims.join(', '),
             verdict: 'Unknown',
-            explanation: accumulatedFinalContent,
+            explanation: accumulatedFinalContent, // Show raw content as explanation
             confidence: 0,
           });
           findAndCategorizeUrls(
@@ -496,7 +533,7 @@ function App() {
       setClaims([]);
       setSelectedClaims([]);
     }
-  }, [selectedClaims, findAndCategorizeUrls]);
+  }, [selectedClaims, findAndCategorizeUrls, getUrlCategory, addCategorizedUrl]);
 
   const handleQuerySubmit = useCallback(() => {
     handleExtractClaims();
@@ -629,7 +666,6 @@ function App() {
   };
 
   const openPopover = Boolean(anchorEl);
-console.log('parsedResult', parsedResult);
 
   return (
     <div className="app-container">
