@@ -45,20 +45,16 @@ import genAILogo from './assets/genaiLogo.png';
 import './App.css';
 import EventCard from './components/EventCard';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import { MdSecurity } from "react-icons/md";
+import SecurityIcon from '@mui/icons-material/Security';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Loader from './components/Loader';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import StorageIcon from '@mui/icons-material/Storage';
 import BoltIcon from '@mui/icons-material/Bolt';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import InfoIcon from '@mui/icons-material/Info';
-import { FaDatabase } from "react-icons/fa6";
-import { IoFlash } from "react-icons/io5";
-import { TbZoomInFilled } from "react-icons/tb";
-import { FaChartLine } from "react-icons/fa6";
-import { SiCodemagic } from "react-icons/si";
 
 function App() {
   const [query, setQuery] = useState('');
@@ -160,7 +156,7 @@ function App() {
         if (obj.url && typeof obj.url === 'string') {
           category = getUrlCategory(obj.url);
           const title = obj.title || obj.page_title || obj.name || 'Untitled';
-          addCategorizedUrl(category, obj.url, title);
+          addCategorizedUrl(category, url, title);
         }
         if (obj.source_url && typeof obj.source_url === 'string') {
           category = getUrlCategory(obj.source_url);
@@ -633,6 +629,7 @@ function App() {
   };
 
   const openPopover = Boolean(anchorEl);
+console.log('parsedResult', parsedResult);
 
   return (
     <div className="app-container">
@@ -646,18 +643,25 @@ function App() {
         </Typography>
         <Box className="header-features">
           <Box className="feature-chip" style={{ paddingLeft: '0' }}>
-            <SiCodemagic className="feature-chip-icon" />
+            <AutoAwesomeIcon className="feature-chip-icon" />
             <Typography className='feature-chip-text'>AI-Powered</Typography>
           </Box>
           <Box className="feature-chip">
-            <MdSecurity className="feature-chip-icon" />
+            <SecurityIcon className="feature-chip-icon" />
             <Typography className='feature-chip-text'>Reliable Sources</Typography>
           </Box>
           <Box className="feature-chip">
-            <FaChartLine className="feature-chip-icon" />
+            <AutoGraphIcon className="feature-chip-icon" />
             <Typography className='feature-chip-text'>Real-time Analysis</Typography>
           </Box>
-        </Box>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+            <Typography className='feature-chip-text' sx={{ mr: 1 }}>
+            powered by
+            </Typography>
+            <img src={genAIIcon} alt="GenAI Icon" style={{ height: '16px', marginRight: '8px' }} />
+            <img src={genAILogo} alt="GenAI Logo" style={{ height: '12px' }} />
+          </Box>
       </Box>
 
       {!showResults && (
@@ -672,7 +676,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container'>
-                          <TbZoomInFilled className='feature-card-icon' />
+                          <ZoomInIcon className='feature-card-icon' />
                         </div>
                         <Typography variant="h6">Deeper Search</Typography>
                       </div>
@@ -685,7 +689,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container' style={{ background: '#F1E7FB' }}>
-                          <FaDatabase className='feature-card-icon' style={{ color: '#8539E0' }} />
+                          <StorageIcon className='feature-card-icon' style={{ color: '#8539E0' }} />
                         </div>
                         <Typography variant="h6">Comprehensive Data</Typography>
                       </div>
@@ -698,7 +702,7 @@ function App() {
                     <CardContent>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
                         <div className='feature-card-icon-container'>
-                          <IoFlash className='feature-card-icon' />
+                          <BoltIcon className='feature-card-icon' />
                         </div>
                         <Typography variant="h6">Real-time Processing</Typography>
                       </div>
@@ -1118,6 +1122,7 @@ function App() {
                       background: 'linear-gradient(to right, #EEF2FF, #F3E8FF)',
                       border: 'none',
                       boxShadow: 'none',
+                      maxWidth: '60%'
                     }
                   }}
                   open={openPopover}
@@ -1132,8 +1137,10 @@ function App() {
                   }}
                   onClose={handlePopoverClose}
                   disableRestoreFocus
+                  aria-owns={openPopover ? 'mouse-over-popover' : undefined}
+                  aria-haspopup="true"
                 >
-                  <Typography sx={{ p: 1 }}>{query || searchedQuery}</Typography>
+                  <Typography sx={{ p: 2 }}>{query || searchedQuery}</Typography>
                 </Popover>
                 <div className="results-container">
                   {isLoading &&
@@ -1591,188 +1598,295 @@ function App() {
         </div>
       )}
       {parsedResult && (
-        <Box className="result-cards">
+        <Box className="result-cards" sx={{ padding: '16px 0' }}>
           {Array.isArray(parsedResult) ? (
-            parsedResult.map((item, index) => {
-              const resultId = `item-${index}`;
-              const confidenceColor = getConfidenceColor(item.confidence);
-              const verdictButtonColor = getVerdictButtonColor(item.verdict);
+            // Slice the array into chunks of 2 cards per row
+            [...Array(Math.ceil(parsedResult.length / 2))].map((_, rowIndex) => {
+              const startIndex = rowIndex * 2;
+              const rowItems = parsedResult.slice(startIndex, startIndex + 2);
               return (
-                <Card key={resultId} className="feature-card" sx={{ position: 'relative', padding: '16px', width: '100%' }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                      position: 'absolute',
-                      top: '16px',
-                      right: '16px',
-                      backgroundColor: verdictButtonColor,
-                      color: 'white',
-                      textTransform: 'none',
-                      borderRadius: '16px',
-                      padding: '2px 10px',
-                      fontSize: '0.8rem',
-                      minWidth: 'auto',
-                      boxShadow: 'none',
-                      '&:hover': {
-                        backgroundColor: verdictButtonColor,
-                        opacity: 0.9
-                      }
-                    }}
-                  >
-                    {renderContent(item.verdict)}
-                  </Button>
-                  <CardContent sx={{ paddingTop: '40px' }}>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: '16px', color: '#000', lineHeight: '1.6' }}>
-                      {renderContent(item.claim)}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
-                          <CircularProgress
-                            variant="determinate"
-                            value={item.confidence ? Math.round(item.confidence * 100) : 0}
-                            size={50}
-                            thickness={4}
-                            sx={{ color: confidenceColor }}
-                          />
-                          <Box
+                <Box key={`row-${rowIndex}`} className="result-row">
+                  {rowItems.map((item, index) => {
+                    const resultId = `item-${startIndex + index}`;
+                    const confidenceColor = getConfidenceColor(item.confidence);
+                    const verdictButtonColor = getVerdictButtonColor(item.verdict);
+                    const isSingleCard = rowItems.length === 1;
+                    return (
+                      <Card
+                        key={resultId}
+                        className="feature-card"
+                        sx={{
+                          position: 'relative',
+                          padding: '16px',
+                          width: isSingleCard ? '100%' : 'calc(50% - 8px)',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                          backgroundColor: '#fff',
+                          '@media (max-width: 600px)': {
+                            width: '100%',
+                          },
+                        }}
+                      >
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: '16px',
+                            right: '16px',
+                            backgroundColor: verdictButtonColor,
+                            color: 'white',
+                            textTransform: 'none',
+                            borderRadius: '16px',
+                            padding: '2px 10px',
+                            fontSize: '0.8rem',
+                            minWidth: 'auto',
+                            boxShadow: 'none',
+                            '&:hover': {
+                              backgroundColor: verdictButtonColor,
+                              opacity: 0.9,
+                            },
+                          }}
+                        >
+                          {renderContent(item.verdict)}
+                        </Button>
+                        <CardContent sx={{ paddingTop: '40px' }}>
+                          <Typography
+                            variant="body1"
                             sx={{
-                              top: 0, left: 0, bottom: 0, right: 0,
-                              position: 'absolute', display: 'flex',
-                              alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 'bold',
+                              marginBottom: '16px',
+                              color: '#000',
+                              lineHeight: '1.6',
                             }}
                           >
-                            <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', fontWeight: 'bold', color: confidenceColor }}>
-                              {item.confidence ? `${Math.round(item.confidence * 100)}%` : 'N/A'}
-                            </Typography>
+                            {renderContent(item.claim)}
+                          </Typography>
+                          <Box className="confidence-details-row">
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                <CircularProgress
+                                  variant="determinate"
+                                  value={item.confidence ? Math.round(item.confidence * 100) : 0}
+                                  size={40}
+                                  thickness={4}
+                                  sx={{ color: confidenceColor }}
+                                />
+                                <Box
+                                  sx={{
+                                    top: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                    right: 0,
+                                    position: 'absolute',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    component="div"
+                                    sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
+                                  >
+                                    {item.confidence ? `${Math.round(item.confidence * 100)}%` : 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
+                                Confidence Score
+                              </Typography>
+                            </Box>
+                            <Button
+                              endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                              sx={{ textTransform: 'none', color: '#673AB7', fontSize: '0.9rem' }}
+                              onClick={() => toggleDetails(resultId)}
+                            >
+                              {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                            </Button>
                           </Box>
-                        </Box>
-                        <Typography variant="body2" sx={{ color: '#000' }}>
-                          Confidence Score
-                        </Typography>
-                      </Box>
-                      <Button
-                        endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                        sx={{ textTransform: 'none', color: '#673AB7' }}
-                        onClick={() => toggleDetails(resultId)}
-                      >
-                        {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
-                      </Button>
-                    </Box>
-                    {expandedResults[resultId] && (
-                      <Box sx={{ marginTop: '20px' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>
-                          Explanation:
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}>
-                          {renderContent(item.explanation)}
-                        </Typography>
-                        <Box sx={{ backgroundColor: '#F3F0FF', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'flex-start' }}>
-                          <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}>
-                              Our verification process
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
-                              This fact check was performed using our AI system trained on verified data sources, cross-referenced with expert knowledge and trusted publications.
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
+                          {expandedResults[resultId] && (
+                            <Box sx={{ marginTop: '20px' }}>
+                              <Typography
+                                variant="h6"
+                                sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}
+                              >
+                                Explanation:
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}
+                              >
+                                {renderContent(item.explanation)}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  backgroundColor: '#F3F0FF',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                }}
+                              >
+                                <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                                <Box>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}
+                                  >
+                                    Our verification process
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
+                                    This fact check was performed using our AI system trained on verified data
+                                    sources, cross-referenced with expert knowledge and trusted publications.
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </Box>
               );
             })
           ) : (
+            // Single card case
             (() => {
               const resultId = 'single-main';
               const confidenceColor = getConfidenceColor(parsedResult.confidence);
               const verdictButtonColor = getVerdictButtonColor(parsedResult.verdict);
               return (
-                <Card className="feature-card" sx={{ position: 'relative', padding: '16px', width: '100%' }}>
-                  <Button
-                    variant="contained"
-                    size="small"
+                <Box className="result-row">
+                  <Card
+                    className="feature-card"
                     sx={{
-                      position: 'absolute',
-                      top: '16px',
-                      right: '16px',
-                      backgroundColor: verdictButtonColor,
-                      color: 'white',
-                      textTransform: 'none',
-                      borderRadius: '16px',
-                      padding: '2px 10px',
-                      fontSize: '0.8rem',
-                      minWidth: 'auto',
-                      boxShadow: 'none',
-                      '&:hover': { backgroundColor: verdictButtonColor, opacity: 0.9 }
+                      position: 'relative',
+                      padding: '16px',
+                      width: '100%',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      backgroundColor: '#fff',
                     }}
                   >
-                    {renderContent(parsedResult.verdict)}
-                  </Button>
-                  <CardContent sx={{ paddingTop: '40px' }}>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold', marginBottom: '16px', color: '#000', lineHeight: '1.6' }}>
-                      {renderContent(parsedResult.claim)}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
-                          <CircularProgress
-                            variant="determinate"
-                            value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0}
-                            size={50}
-                            thickness={4}
-                            sx={{ color: confidenceColor }}
-                          />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: '16px',
+                        right: '16px',
+                        backgroundColor: verdictButtonColor,
+                        color: 'white',
+                        textTransform: 'none',
+                        borderRadius: '16px',
+                        padding: '2px 10px',
+                        fontSize: '0.8rem',
+                        minWidth: 'auto',
+                        boxShadow: 'none',
+                        '&:hover': { backgroundColor: verdictButtonColor, opacity: 0.9 },
+                      }}
+                    >
+                      {renderContent(parsedResult.verdict)}
+                    </Button>
+                    <CardContent sx={{ paddingTop: '40px' }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 'bold',
+                          marginBottom: '16px',
+                          color: '#000',
+                          lineHeight: '1.6',
+                        }}
+                      >
+                        {renderContent(parsedResult.claim)}
+                      </Typography>
+                      <Box className="confidence-details-row">
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                            <CircularProgress
+                              variant="determinate"
+                              value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0}
+                              size={40}
+                              thickness={4}
+                              sx={{ color: confidenceColor }}
+                            />
+                            <Box
+                              sx={{
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                position: 'absolute',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                component="div"
+                                sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
+                              >
+                                {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
+                            Confidence Score
+                          </Typography>
+                        </Box>
+                        <Button
+                          endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                          sx={{ textTransform: 'none', color: '#673AB7', fontSize: '0.9rem' }}
+                          onClick={() => toggleDetails(resultId)}
+                        >
+                          {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                        </Button>
+                      </Box>
+                      {expandedResults[resultId] && (
+                        <Box sx={{ marginTop: '20px' }}>
+                          <Typography
+                            variant="h6"
+                            sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}
+                          >
+                            Explanation:
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}
+                          >
+                            {renderContent(parsedResult.explanation)}
+                          </Typography>
                           <Box
                             sx={{
-                              top: 0, left: 0, bottom: 0, right: 0,
-                              position: 'absolute', display: 'flex',
-                              alignItems: 'center', justifyContent: 'center',
+                              backgroundColor: '#F3F0FF',
+                              padding: '12px',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'flex-start',
                             }}
                           >
-                            <Typography variant="caption" component="div" sx={{ fontSize: '0.8rem', fontWeight: 'bold', color: confidenceColor }}>
-                              {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
-                            </Typography>
+                            <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                            <Box>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}
+                              >
+                                Our verification process
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
+                                This fact check was performed using our AI system trained on verified data
+                                sources, cross-referenced with expert knowledge and trusted publications.
+                              </Typography>
+                            </Box>
                           </Box>
                         </Box>
-                        <Typography variant="body2" sx={{ color: '#000' }}>
-                          Confidence Score
-                        </Typography>
-                      </Box>
-                      <Button
-                        endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                        sx={{ textTransform: 'none', color: '#673AB7' }}
-                        onClick={() => toggleDetails(resultId)}
-                      >
-                        {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
-                      </Button>
-                    </Box>
-                    {expandedResults[resultId] && (
-                      <Box sx={{ marginTop: '20px' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>
-                          Explanation:
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#000', marginBottom: '16px', lineHeight: '1.6' }}>
-                          {renderContent(parsedResult.explanation)}
-                        </Typography>
-                        <Box sx={{ backgroundColor: '#F3F0FF', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'flex-start' }}>
-                          <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}>
-                              Our verification process
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#555', lineHeight: '1.5' }}>
-                              This fact check was performed using our AI system trained on verified data sources, cross-referenced with expert knowledge and trusted publications.
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Box>
               );
             })()
           )}

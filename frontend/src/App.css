@@ -138,12 +138,34 @@
   margin-top: 20px;
 }
 
+/* Result Cards Section */
 .result-cards {
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  margin-top: 20px;
 }
 
+.result-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+/* Confidence Details Row */
+.confidence-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.confidence-details-row .MuiButton-root {
+  padding: 0;
+  min-width: auto;
+}
 .feature-card {
   background-color: #ffffff;
   border-radius: 10px;
