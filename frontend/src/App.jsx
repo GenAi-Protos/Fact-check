@@ -680,8 +680,7 @@ function App() {
           Fact Check
         </Typography>
         <Typography variant="subtitle1" className="header-subtitle">
-          Advanced fact-checking system powered by AI. Verify claims, analyze sources, and
-          get detailed insights with confidence scores.
+          
         </Typography>
         <Box className="header-features">
           <Box className="feature-chip" style={{ paddingLeft: '0' }}>
@@ -713,9 +712,6 @@ function App() {
               <Loader />
             ) : (
               <div className="landing-page">
-                {/* Empty space at the top for better layout */}
-                <div className="spacer"></div>
-                
                 {/* Feature cards in the middle section */}
                 <div className="feature-cards-wrapper">
                   <Box className="feature-cards">
