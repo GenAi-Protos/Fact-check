@@ -761,9 +761,10 @@ function App() {
                 <div className="search-wrapper">
                   <Box className="search-section">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                      <Typography variant="h6" className="search-label">
-                        RESEARCH QUERY
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <img src={genAIIcon} alt="GenAI Icon" style={{ height: '24px', marginRight: '8px' }} />
+                        <img src={genAILogo} alt="GenAI Logo" style={{ height: '20px' }} /></Box>
+
                       <Box sx={{ display: 'flex', gap: '8px' }}>
                         {totalLinks > 0 && (
                           <Button
@@ -1461,9 +1462,10 @@ function App() {
             <div className="input-section bottom-input" ref={bottomRef}>
               <Box className="search-section">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                  <Typography variant="h6" className="search-label">
-                    RESEARCH QUERY
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <img src={genAIIcon} alt="GenAI Icon" style={{ height: '24px', marginRight: '8px' }} />
+                    <img src={genAILogo} alt="GenAI Logo" style={{ height: '20px' }} />
+                  </Box>
                   <Box sx={{ display: 'flex', gap: '8px' }}>
                     {totalLinks > 0 && (
                       <Button
