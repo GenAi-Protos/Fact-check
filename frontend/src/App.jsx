@@ -658,8 +658,8 @@ function App() {
   };
 
   const getVerdictButtonColor = (verdict) => {
-    if (verdict === 'True') return '#673AB7';
-    if (verdict === 'False') return '#DB7093';
+    if (verdict === 'True') return '#4C46DA'; // Changed to primary theme color
+    if (verdict === 'False') return '#E95A7C'; // Changed to match theme aesthetic
     return '#FF9800';
   };
 
@@ -1667,9 +1667,33 @@ function App() {
                           position: 'relative',
                           padding: '16px',
                           width: isSingleCard ? '100%' : 'calc(50% - 8px)',
-                          borderRadius: '8px',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                          backgroundColor: '#fff',
+                          borderRadius: '16px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.07)',
+                          background: 'linear-gradient(135deg, #f3f6ff, #f5f0ff)',
+                          border: '1px solid rgba(226, 232, 255, 0.7)',
+                          transform: 'translateY(0)',
+                          transition: 'all 0.4s ease-in-out',
+                          overflow: 'hidden',
+                          '&:hover': {
+                            transform: 'translateY(-5px)',
+                            boxShadow: '0 15px 35px rgba(0, 0, 0, 0.12)',
+                            borderColor: 'rgba(226, 232, 255, 0.9)',
+                          },
+                          '&::after': {
+                            content: '\'\'',
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '4px',
+                            background: 'linear-gradient(to right, #4C46DA, #6E66FF)',
+                            transform: 'scaleX(0)',
+                            transformOrigin: 'left',
+                            transition: 'transform 0.4s ease-out',
+                          },
+                          '&:hover::after': {
+                            transform: 'scaleX(1)',
+                          },
                           '@media (max-width: 600px)': {
                             width: '100%',
                           },
@@ -1747,7 +1771,7 @@ function App() {
                             </Box>
                             <Button
                               endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                              sx={{ textTransform: 'none', color: '#673AB7', fontSize: '0.9rem' }}
+                              sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
                               onClick={() => toggleDetails(resultId)}
                             >
                               {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
@@ -1776,11 +1800,11 @@ function App() {
                                   alignItems: 'flex-start',
                                 }}
                               >
-                                <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                                <InfoIcon sx={{ color: '#4C46DA', marginRight: '10px', marginTop: '3px' }} />
                                 <Box>
                                   <Typography
                                     variant="body2"
-                                    sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}
+                                    sx={{ fontWeight: 'bold', color: '#4C46DA', marginBottom: '4px' }}
                                   >
                                     Our verification process
                                   </Typography>
@@ -1813,9 +1837,33 @@ function App() {
                       position: 'relative',
                       padding: '16px',
                       width: '100%',
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: '#fff',
+                      borderRadius: '16px',
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.07)',
+                      background: 'linear-gradient(135deg, #f3f6ff, #f5f0ff)',
+                      border: '1px solid rgba(226, 232, 255, 0.7)',
+                      transform: 'translateY(0)',
+                      transition: 'all 0.4s ease-in-out',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.12)',
+                        borderColor: 'rgba(226, 232, 255, 0.9)',
+                      },
+                      '&::after': {
+                        content: '\'\'',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '4px',
+                        background: 'linear-gradient(to right, #4C46DA, #6E66FF)',
+                        transform: 'scaleX(0)',
+                        transformOrigin: 'left',
+                        transition: 'transform 0.4s ease-out',
+                      },
+                      '&:hover::after': {
+                        transform: 'scaleX(1)',
+                      },
                     }}
                   >
                     <Button
@@ -1887,7 +1935,7 @@ function App() {
                         </Box>
                         <Button
                           endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                          sx={{ textTransform: 'none', color: '#673AB7', fontSize: '0.9rem' }}
+                          sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
                           onClick={() => toggleDetails(resultId)}
                         >
                           {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
@@ -1916,11 +1964,11 @@ function App() {
                               alignItems: 'flex-start',
                             }}
                           >
-                            <InfoIcon sx={{ color: '#673AB7', marginRight: '10px', marginTop: '3px' }} />
+                            <InfoIcon sx={{ color: '#4C46DA', marginRight: '10px', marginTop: '3px' }} />
                             <Box>
                               <Typography
                                 variant="body2"
-                                sx={{ fontWeight: 'bold', color: '#673AB7', marginBottom: '4px' }}
+                                sx={{ fontWeight: 'bold', color: '#4C46DA', marginBottom: '4px' }}
                               >
                                 Our verification process
                               </Typography>
