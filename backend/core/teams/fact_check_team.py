@@ -11,7 +11,7 @@ def create_fact_check_team(additional_context:str=""):
     fact_check_team = Team(
         name='Fact Checker Journalist',
         mode="coordinate",
-        model=OpenRouter(id="anthropic/claude-3.7-sonnet:thinking",api_key=settings.OPENROUTER_API_KEY),
+        model=OpenRouter(id="anthropic/claude-3.7-sonnet",api_key=settings.OPENROUTER_API_KEY),
         tools=[
             ReasoningTools(add_instructions=True)
         ],
