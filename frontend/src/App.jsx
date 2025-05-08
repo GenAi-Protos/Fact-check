@@ -44,8 +44,7 @@ import { IoFlash } from "react-icons/io5";
 import { FaDatabase } from "react-icons/fa";
 import { RiZoomInFill } from "react-icons/ri";
 import { FaChartLine } from "react-icons/fa6";
-import { FaBahai } from "react-icons/fa6";
-import { MdOutlineSecurity } from "react-icons/md";
+import Sidebar from './components/Sidebar';
 import genAIIcon from './assets/genAI_icon.png';
 import genAILogo from './assets/genaiLogo.png';
 import './App.css';
@@ -674,36 +673,9 @@ function App() {
   const openPopover = Boolean(anchorEl);
 
   return (
-    <div className="app-container">
-      <Box className="header-section deep-research-container">
-        <Typography variant="h3" className="header-title">
-          Fact Check
-        </Typography>
-        <Typography variant="subtitle1" className="header-subtitle">
-          
-        </Typography>
-        <Box className="header-features">
-          <Box className="feature-chip" style={{ paddingLeft: '0' }}>
-            <FaBahai className="feature-chip-icon" />
-            <Typography className='feature-chip-text'>AI-Powered</Typography>
-          </Box>
-          <Box className="feature-chip">
-            <MdOutlineSecurity className="feature-chip-icon" />
-            <Typography className='feature-chip-text'>Reliable Sources</Typography>
-          </Box>
-          <Box className="feature-chip">
-            <FaChartLine className="feature-chip-icon" />
-            <Typography className='feature-chip-text'>Real-time Analysis</Typography>
-          </Box>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-            <Typography className='feature-chip-text' sx={{ mr: 1 }}>
-            powered by
-            </Typography>
-            <img src={genAIIcon} alt="GenAI Icon" style={{ height: '16px', marginRight: '8px' }} />
-            <img src={genAILogo} alt="GenAI Logo" style={{ height: '12px' }} />
-          </Box>
-      </Box>
+    <div className="app-container" style={{ display: 'flex' }}>
+      <Sidebar />
+      <Box className="main-content">
 
       {!showResults && (
         <div className="facts-checker-container">
@@ -711,7 +683,7 @@ function App() {
             {isLoading ? (
               <Loader />
             ) : (
-              <div className="landing-page">
+              <div className="landing-page" style={{width:"100%"}}>
                 {/* Feature cards in the middle section */}
                 <div className="feature-cards-wrapper">
                   <Box className="feature-cards">
@@ -826,14 +798,14 @@ function App() {
                       placeholder="Enter your research query or paste content to analyze..."
                       multiline
                       minRows={1}
-                      maxRows={6}
+                      maxRows={3}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       className="search-input"
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, }}>
                               <Button
                                 variant="contained"
                                 className="submit-button"
@@ -854,7 +826,7 @@ function App() {
                         },
                         '& textarea': {
                           color: '#212529 !important',
-                          padding: '5px 0',
+                          padding: '0',
                           maxHeight: '250px',
                           overflowY: 'auto',
                           resize: 'none',
@@ -1988,6 +1960,7 @@ function App() {
           )}
         </Box>
       )}
+      </Box>
     </div>
   );
 }
