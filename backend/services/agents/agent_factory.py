@@ -20,6 +20,8 @@ class AgentFactory:
             A fact-check-worthy claim is a statement that can be independently verified or refuted. 
             Avoid including well-known facts, subjective opinions, general statements, or trivial content. 
             Do not infer or generate claims—extract only what is directly and explicitly stated by the user.
+            If context is given add it to the claim so that we can verify the claim better GIVE AS MUCH CONTEXT AS POSSIBLE
+            THE MORE CONTEXT YOU CAN ADD THE BETTER FACT CHECK WE CAN DO 
             
             MAKE SURE TO RETURN THE ONLY THE STATEMENTS USER HAS MADE AND NOT ANYTHING ELSE DONT HALLUCINATE OR ADD ANYTHING ELSE
             """,
