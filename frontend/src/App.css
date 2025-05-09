@@ -410,7 +410,7 @@
 
 /* Search Section */
 .search-section {
-  background: linear-gradient(135deg, #f3f6ff, #f5f0ff);
+  background: #fff;
   border-radius: 18px;
   /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); */
   padding: 25px;
@@ -798,14 +798,12 @@
   flex: 1;
   min-width: 100px;
   overflow-y: auto;
-  height: 70vh;
   padding: 0 10px;
 }
 
 .right-column {
   flex: 3;
   overflow-y: auto;
-  height: 70vh;
   padding: 0 5px;
 }
 
