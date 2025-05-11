@@ -632,6 +632,7 @@ function App() {
     setGenericLink('');
     setImageFile(null);
     setVideoFile(null);
+    setSearchHistory('');
 
     // Reset results and display states
     setSearchedQuery('');
@@ -736,7 +737,7 @@ function App() {
             sx={{
               mr: 2,
               display: { sm: 'none' },
-              position: 'fixed', // Ensure this is 'fixed'
+              position: 'absolute', // Reverted from 'fixed'
               top: 15,
               left: 15,
               zIndex: 1301, 
@@ -762,32 +763,19 @@ function App() {
       ) : (
         <Sidebar searchHistory={searchHistory} />
       )}
-      
+      {showResults && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            className="newClaim-button"
+            onClick={handleNewClaimReset}
+            disabled={isLoading}
+          >
+            New Claim
+          </Button>
+        </div>
+      )}
       <Box className="main-content">
-        {/* "New Claim" button moved inside main-content and placed at the top */}
-        {showResults && (
-          <div style={{
-            width: '100%', // Occupy full width of main-content
-            display: 'flex',
-            justifyContent: 'flex-end', // Align button to the right
-            padding: '16px 16px 0 16px', // Add some padding (top, right, bottom, left)
-            boxSizing: 'border-box',
-            position: 'sticky', // Make it sticky to the top of main-content scroll
-            top: 0,
-            backgroundColor: '#fff', // Add background to prevent content scroll-under
-            zIndex: 100, // Ensure it's above other scrolled content in main-content
-          }}>
-            <Button
-              variant="contained"
-              className="newClaim-button"
-              onClick={handleNewClaimReset}
-              disabled={isLoading}
-            >
-              New Claim
-            </Button>
-          </div>
-        )}
-
         {!showResults && (
           <div className="facts-checker-container">
             <div className="facts-checker-content">
@@ -1309,16 +1297,15 @@ function App() {
                     ref={queryDisplayRef}
                     sx={{
                       mb: 2,
-                      p: 1,
                       width: 'fit-content',
                       ml: 'auto',
                       mr: 0,
                       maxWidth: '90%',
                       mt: 2,
-                      background: 'linear-gradient(to right, #EEF2FF, #F3E8FF)',
-                      border: 'none',
+                      borderRadius: '10px',
                       boxShadow: 'none',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      background: 'linear-gradient(to right, #EEF2FF, #F3E8FF)',
                     }}
                     onMouseEnter={handlePopoverOpen}
                     onMouseLeave={handlePopoverClose}
@@ -1329,14 +1316,15 @@ function App() {
                       variant="h6"
                       className="searched-query"
                       sx={{
-                        fontSize: '1.1rem',
+                        fontSize: '1rem',
                         color: '#212529',
                         textAlign: 'right',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         maxWidth: '100%',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        padding: '10px'
                       }}
                     >
                       {(query || searchedQuery).length > 200
@@ -1352,7 +1340,8 @@ function App() {
                         background: 'linear-gradient(to right, #EEF2FF, #F3E8FF)',
                         border: 'none',
                         boxShadow: 'none',
-                        maxWidth: '60%'
+                        maxWidth: '60%',
+                        padding: '10px'
                       }
                     }}
                     open={openPopover}
@@ -1702,7 +1691,7 @@ function App() {
                                         ? renderContent(eventData.reasoning_content).toString().replace(/^##\s*/, '').substring(0, 100) + '...'
                                         : eventData.tools && eventData.tools[0]?.content
                                         ? renderContent(eventData.tools[0].content).toString().replace(/^##\s*/, '').substring(0, 100) + '...'
-                                        : 'No preview available'}
+                                        : ''}
                                     </Typography>
                                   </CardContent>
                                 </Card>
@@ -2059,7 +2048,7 @@ function App() {
           </Box>
         )}
 
-        {showResults && (
+        {showResults && (events.length !== 0 || displayedUrls.length !== 0) && (
           <Box className="response-sidebar">
             <Box sx={{ padding: 2, borderBottom: '2px solid rgba(230, 235, 255, 0.7)', display: 'flex', justifyContent: 'space-between' }}>
               <Typography
@@ -2231,7 +2220,7 @@ function App() {
                               ? renderContent(eventData.reasoning_content).toString().replace(/^##\s*/, '').substring(0, 100) + '...'
                               : eventData.tools && eventData.tools[0]?.content
                               ? renderContent(eventData.tools[0].content).toString().replace(/^##\s*/, '').substring(0, 100) + '...'
-                              : 'No preview available'}
+                              : ''}
                           </Typography>
                         </CardContent>
                       </Card>
