@@ -8,12 +8,12 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  color: #212529;
-  /* max-width: 1000px; */
   width: 100%;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
+  position: relative; /* Ensure this is set for absolute children */
+  overflow: hidden;
 }
 
 /* Deep Research Container */
@@ -62,7 +62,7 @@
   display: flex;
   flex-direction: column;
   /* min-height: 100vh; */
-  height: 95vh;
+  height: 92vh;
   justify-content: center;
   position: relative;
   overflow: hidden;
@@ -111,22 +111,6 @@
   pointer-events: none;
   z-index: 1;
 }
-
-.search-wrapper {
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  position: absolute;
-  /* margin-top: 30px; */
-  margin-bottom: 0px;
-  z-index: 1;
-  width: 100%;
-  /* max-width: 700px; */
-  height: 25%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 /* Sidebar Container */
 .sidebar-container {
   text-align: left;
@@ -185,16 +169,6 @@
   flex-direction: column;
   height: 100%;
 }
-
-.sidebar-title {
-  font-size: 2rem !important;
-  font-weight: 800 !important;
-  color: #000000;
-  letter-spacing: -0.025em;
-  margin-bottom: 1rem !important;
-  line-height: 1.2;
-}
-
 .sidebar-subtitle {
   font-size: 1rem;
   color: #313131;
@@ -262,7 +236,7 @@
 
 .feature-card-icon {
   color: #4C46DA;
-  font-size: 1.8rem !important;
+  font-size: 1.3rem !important;
   transition: all 0.4s ease;
 }
 
@@ -339,10 +313,36 @@
   padding: 0;
   min-width: auto;
 }
+.feature-cards-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0 30px;
+  animation: fadeIn 0.8s ease-in-out;
+  position: relative;
+  padding: 10px 0;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.feature-cards {
+  display: flex;
+  gap: 15px;
+  width: 100%; /* Use full width of the wrapper */
+  max-width: 1200px; /* Increased max-width to allow wider cards */
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+  justify-content: space-between; /* Distributes space evenly between cards */
+}
+
 .feature-card {
   background-color: #ffffff;
   border-radius: 16px;
-  flex: 1;
+  flex: 1; /* Each card takes equal space */
+  min-width: 300px; /* Minimum width to ensure cards are wide enough */
+  max-width: 380px; /* Maximum width to prevent cards from becoming too wide */
   transition: all 0.4s ease-in-out;
   display: flex;
   flex-direction: column;
@@ -411,38 +411,45 @@
 /* Search Section */
 .search-section {
   background: #fff;
-  border-radius: 18px;
-  /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); */
-  padding: 25px;
-  /* max-width: 00px; */
+  border-radius: 10px;
   width: 100%;
+  max-width: 1000px; /* Match max-width for consistency */
   margin: 0 auto;
   box-sizing: border-box;
-  transform: translateY(0);
+  border: 1px solid #dcdcdc;
+  padding: 10px;
   transition: all 0.4s ease-in-out;
-  border: 1px solid rgba(226, 232, 255, 0.7);
   animation: fadeIn 0.8s ease-in-out;
-  position: relative;
 }
 
-.search-section::before {
-  content: '';
+.search-wrapper {
   position: absolute;
-  top: -15px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 150px;
-  height: 5px;
-  background: linear-gradient(90deg, transparent, rgba(76, 70, 218, 0.2), transparent);
-  border-radius: 50%;
+  width: 100%;
+  max-width: 1000px; /* Match the max-width of other containers for consistency */
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+  z-index: 10; /* Ensure it stays above other elements */
+  display: flex;
+  justify-content: center; /* Center content within the wrapper */
+  flex-direction: column;
 }
 
 .search-section:hover {
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12); */
   transform: translateY(-5px);
   border-color: rgba(226, 232, 255, 0.9);
 }
-
+.newClaim-button{
+  background-color: #192533 !important;
+  margin-bottom: 5px;
+  border-radius: 10px !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
 .search-label {
   font-size: 1.2rem;
   font-weight: 600 !important;
@@ -452,20 +459,24 @@
 
 .search-input {
   width: 100%;
-  margin-bottom: 20px;
   position: relative;
 }
-
+.searchbox-below-line{
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 5px;
+  color: #ababab;
+  text-align: center;
+  margin-bottom: 10px;
+}
 .search-input .MuiOutlinedInput-root {
-  border-radius: 12px;
   background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.035);
   transition: all 0.3s ease;
+  border-bottom: 1px solid rgb(234, 234, 234);
 }
 
 .search-input .MuiOutlinedInput-root:hover,
 .search-input .MuiOutlinedInput-root.Mui-focused {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
   background-color: #ffffff;
 }
 
@@ -479,7 +490,25 @@
   font-size: 1.05rem;
   font-weight: 400;
 }
+.sources-card {
+  margin-top: 16px;
+  color: #212529;
+  border-radius: 8px;
+  max-width: 1000px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  padding-bottom: 0;
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+}
 
+.sources-card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
 .search-input textarea::placeholder {
   color: #9aa1ab !important;
   opacity: 1;
@@ -509,8 +538,8 @@
   gap: 10px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 10px;
-  justify-content: center;
+  padding: 10px 0 0;
+  justify-content: flex-start;
 }
 
 .social-button {
@@ -520,27 +549,13 @@
   border: none !important;
   font-size: 0.9rem;
   font-weight: 500 !important;
-  padding: 8px 15px;
-  background-color: #F5F7FA !important;
+  padding: 10px;
+  background-color: #F9FBFC !important;
   transition: all 0.3s ease-in-out;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
   z-index: 1;
 }
-
-.social-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(76, 70, 218, 0.08), transparent);
-  transition: width 0.4s ease;
-  z-index: -1;
-}
-
 .social-button-active {
   background: linear-gradient(135deg, #4C46DA, #6E66FF) !important;
   border-radius: 12px;
@@ -555,9 +570,9 @@
 }
 
 .social-button:hover {
-  background-color: #f0f2f5 !important;
+  background-color: #F9FBFC !important;
   transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
 }
 
 .social-button:hover::before {
@@ -570,16 +585,22 @@
 }
 
 .submit-button {
-  background: linear-gradient(135deg, #4C46DA, #6E66FF) !important;
-  color: #ffffff !important;
+  /* Common structural and transition styles */
+  color: #ffffff !important; /* Note: This color will still apply to disabled state. Consider making it conditional if needed. */
   border-radius: 50% !important;
-  min-width: 48px !important;
-  height: 48px !important;
+  min-width: 35px !important;
+  height: 35px !important;
   padding: 0 !important;
-  box-shadow: 0 6px 16px rgba(76, 70, 218, 0.25);
   transition: all 0.4s ease-in-out;
   position: relative;
   overflow: hidden;
+  /* Removed background and box-shadow from here, will be applied to :not(:disabled) state */
+}
+
+/* Styles for the button when it is NOT disabled */
+.submit-button:not(:disabled) {
+  background: linear-gradient(135deg, #4C46DA, #6E66FF) !important;
+  box-shadow: 0 6px 16px rgba(76, 70, 218, 0.25);
 }
 
 .submit-button:before {
@@ -594,13 +615,14 @@
   z-index: 1;
 }
 
-.submit-button:hover {
+/* Hover effects for the button when it is NOT disabled */
+.submit-button:not(:disabled):hover {
   transform: scale(1.1) rotate(3deg);
-  box-shadow: 0 10px 25px rgba(76, 70, 218, 0.4);
   background: linear-gradient(135deg, #5C56EA, #7E76FF) !important;
 }
 
-.submit-button:hover:before {
+/* Animation for the :before pseudo-element on hover when NOT disabled */
+.submit-button:not(:disabled):hover:before {
   left: 100%;
 }
 
@@ -610,7 +632,8 @@
   100% { box-shadow: 0 0 0 0 rgba(76, 70, 218, 0); }
 }
 
-.submit-button:active {
+/* Active effects for the button when it is NOT disabled */
+.submit-button:not(:disabled):active {
   animation: pulse 0.8s;
 }
 
@@ -770,8 +793,6 @@
 }
 
 .results-container {
-  max-width: 930px;
-  margin: 0 auto;
   padding: 10px;
   background: #ffffff;
   border-radius: 10px;
@@ -790,6 +811,7 @@
   max-width: 1000px;
   width: 100%;
   margin: 0 auto;
+  padding: 10px;
   padding-bottom: 0;
 }
 
@@ -949,7 +971,6 @@
   font-size: 1.25rem;
   margin-bottom: 16px;
 }
-
 .response-text pre {
   background-color: transparent;
   padding: 0;
@@ -1012,8 +1033,57 @@
   background-color: #e2e6ea;
   transform: translateY(-2px);
 }
-
+.header-container {
+  position: absolute;
+  top: 20%;
+  margin-bottom: 4vh;
+}
 @keyframes fadeIn {
   0% { opacity: 0; }
   100% { opacity: 1; }
+}
+.app-header-text{
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #192533;
+}
+.app-desciption-text{
+  width: 60%;
+  margin: 0 auto;
+  line-height: 1.7rem;
+  text-align: center;
+  color: #213144;
+}
+.response-sidebar {
+  width: 20vw; /* Base width for larger screens */
+  border: 1px solid rgba(226, 232, 255, 0.7);
+  border-left: 2px solid rgba(226, 232, 255, 0.7);
+  box-sizing: border-box; /* Ensure padding/border don't affect width */
+  transition: all 0.3s ease; /* Smooth transitions for responsive changes */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .response-sidebar {
+    width: 20vw; /* Slightly wider on medium screens for better usability */
+    min-width: 200px; /* Prevent sidebar from becoming too narrow */
+  }
+}
+
+@media (max-width: 768px) {
+  .response-sidebar {
+    width: 100%; /* Full width on smaller screens */
+    min-width: unset; /* Remove min-width constraint */
+    border-left: 1px solid rgba(226, 232, 255, 0.7); /* Normalize border for consistency */
+    margin: 0 auto; /* Center if needed */
+    max-width: 500px; /* Cap width to avoid stretching too much */
+  }
+}
+
+@media (max-width: 480px) {
+  .response-sidebar {
+    padding: 15px; /* Add padding for better touch targets */
+    border: 1px solid rgba(226, 232, 255, 0.7); /* Simplify border for mobile */
+  }
 }
