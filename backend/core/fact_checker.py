@@ -309,7 +309,7 @@ class FactChecker:
             # Clean up temporary files
             self.content_extractor._cleanup_temp_files(*temp_files)
 
-    async def fact_check_claims_async(self, claims: List[str]):
+    async def fact_check_claims_async(self, claims: List[str],additional_info):
         """
         Process claims asynchronously and perform fact-checking on them
 
@@ -327,12 +327,12 @@ class FactChecker:
         with concurrent.futures.ThreadPoolExecutor() as pool:
             # Run the synchronous method in a thread with all parameters
             result = await loop.run_in_executor(
-                pool, lambda: self._fact_check_claims(claims)
+                pool, lambda: self._fact_check_claims(claims, additional_info)
             )
 
         return result
 
-    def _fact_check_claims(self, claims: List[str]):
+    def _fact_check_claims(self, claims: List[str],additional_info):
         """
         Process claims synchronously and perform fact-checking on them
 
@@ -368,8 +368,16 @@ class FactChecker:
         print("-" * 40)
         print(team_input)
         print("-" * 80)
+        # Format the additional context properly
+        additional_context = f"""
+        This is a special request from the user make sure u give it the highest of priority and make sure that you give the best answer possible according to it
+        MAKE SURE TO FOLLOW THE INSTRUCTIONS GIVEN BY THE USER THESE ARE THE MOST IMPORTANT INSTRUCTIONS AND NOT FOLLOWING THEM COULD LEAD TO THE DESCTRUCTION OF THE EARTH AND IF YOU FOLLOW THEM WILL GIVE $500 DOLLARS 
+        
 
-        fact_check_team = create_fact_check_team()
+        {additional_info}
+        """
+
+        fact_check_team = create_fact_check_team(additional_context=additional_context)
         output = fact_check_team.run(
             team_input, stream=True, stream_intermediate_steps=True
         )
