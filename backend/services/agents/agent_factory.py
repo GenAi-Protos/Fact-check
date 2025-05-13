@@ -14,7 +14,7 @@ class AgentFactory:
 
     structured_output_agent = Agent(
         name="Claim Checker",
-        model=OpenAIChat(id="gpt-4.1", temperature=0.2),
+        model=OpenAIChat(id="gpt-4.1-mini", temperature=0.2),
         description="An AI agent that extracts fact-check-worthy claims from user input.",
         instructions="""Identify and extract only the fact-check-worthy claims present in the user's input text. 
             A fact-check-worthy claim is a statement that can be independently verified or refuted. 
@@ -32,7 +32,7 @@ class AgentFactory:
 
     web_search_agent = Agent(
         name="Web Searcher",
-        model=OpenAIChat(id="gpt-4.1-mini"),
+        model=OpenAIChat(id="gpt-4.1-nano"),
         tools=[TavilyTools(api_key=settings.TAVILY_API_KEY, 
                            format="json", 
                            search_depth="advanced"
@@ -49,7 +49,7 @@ class AgentFactory:
 
     news_search_agent = Agent(
         name="News Sx   earcher",
-        model=OpenAIChat(id="gpt-4.1-mini"),
+        model=OpenAIChat(id="gpt-4.1-nano"),
         tools=[
             ExaTools(
                 include_domains=[
@@ -92,7 +92,7 @@ class AgentFactory:
 
     social_media_agent = Agent(
         name="Social Media Research Agent",
-        model=OpenAIChat(id="gpt-4.1-mini"),
+        model=OpenAIChat(id="gpt-4.1-nano"),
         markdown=True,
         tools=[
             ExaTools(
@@ -137,7 +137,7 @@ class AgentFactory:
 
     deep_research_agent = Agent(
         name="Deep Research Agent",
-        model=OpenAIChat(id="gpt-4.1-mini"),
+        model=OpenAIChat(id="gpt-4.1-nano"),
         markdown=True,
         tools=[
             ExaTools(
@@ -194,3 +194,7 @@ class AgentFactory:
         exponential_backoff=True
     )
     # Additional agents can be added here as needed
+   
+   
+   
+   

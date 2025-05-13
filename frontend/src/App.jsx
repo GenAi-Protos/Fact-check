@@ -155,6 +155,44 @@ function App() {
     return 'General';
   };
 
+  // Helper function to extract potential title for a URL from surrounding text
+  const extractTitleForUrl = useCallback((url, fullText) => {
+    // Try to find markdown-style links: [Title](url)
+    const markdownRegex = new RegExp(`\\[(.*?)\\]\\(${escapeRegExp(url)}\\)`, 'i');
+    const markdownMatch = fullText.match(markdownRegex);
+    if (markdownMatch && markdownMatch[1]) {
+      return markdownMatch[1].trim();
+    }
+    
+    // Try to find HTML-style links: <a href="url">Title</a>
+    const htmlRegex = new RegExp(`<a[^>]*href=["']${escapeRegExp(url)}["'][^>]*>(.*?)<\\/a>`, 'i');
+    const htmlMatch = fullText.match(htmlRegex);
+    if (htmlMatch && htmlMatch[1]) {
+      return htmlMatch[1].trim();
+    }
+    
+    // Try to find "title: url" patterns
+    const titlePrefixRegex = new RegExp(`([^\\n:]+):\\s*${escapeRegExp(url)}`, 'i');
+    const titlePrefixMatch = fullText.match(titlePrefixRegex);
+    if (titlePrefixMatch && titlePrefixMatch[1]) {
+      return titlePrefixMatch[1].trim();
+    }
+    
+    // Try to extract title from quotes surrounding the URL
+    const surroundingTextRegex = new RegExp(`["'"](.*?)["'"][^"'"]*${escapeRegExp(url)}`, 'i');
+    const surroundingMatch = fullText.match(surroundingTextRegex);
+    if (surroundingMatch && surroundingMatch[1]) {
+      return surroundingMatch[1].trim();
+    }
+    
+    return null;
+  }, []);
+  
+  // Helper to escape special characters in strings for using in RegExp
+  const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  };
+
   const findAndCategorizeUrls = useCallback(
     (obj, sourceHint = 'Unknown Source') => {
       if (!obj) return;
@@ -164,7 +202,42 @@ function App() {
         if (matches) {
           matches.forEach((url) => {
             const category = getUrlCategory(url);
-            addCategorizedUrl(category, url);
+            
+            // Try to extract a title from the surrounding context
+            const title = extractTitleForUrl(url, obj) || 
+                         // Extract title from URL if it's a reference to an article or source
+                         (url.includes('article') || url.includes('story') || url.includes('publication')) ? 
+                            url.split('/').pop()?.replace(/-|_/g, ' ')?.replace(/\.\w+$/, '') : null;
+            
+            // If we found a title, use it; otherwise default to the URL domain
+            if (title) {
+              addCategorizedUrl(category, url, title);
+            } else {
+              try {
+                const urlObj = new URL(url);
+                const domainParts = urlObj.hostname.split('.');
+                let siteName = domainParts[domainParts.length - 2] || urlObj.hostname;
+                siteName = siteName.charAt(0).toUpperCase() + siteName.slice(1);
+                
+                // Extract path for additional context if available
+                const pathParts = urlObj.pathname.split('/').filter(p => p);
+                let contextFromPath = '';
+                if (pathParts.length > 0) {
+                  const lastPath = pathParts[pathParts.length - 1]
+                    .replace(/-|_/g, ' ')
+                    .replace(/\.\w+$/, '');
+                  
+                  if (lastPath.length > 3) {
+                    contextFromPath = `: ${lastPath.charAt(0).toUpperCase() + lastPath.slice(1)}`;
+                  }
+                }
+                
+                addCategorizedUrl(category, url, `${siteName}${contextFromPath}`);
+              } catch {
+                // Fallback to just adding the URL without title
+                addCategorizedUrl(category, url);
+              }
+            }
           });
         }
       } else if (Array.isArray(obj)) {
@@ -184,7 +257,7 @@ function App() {
         Object.values(obj).forEach((value) => findAndCategorizeUrls(value, category));
       }
     },
-    [],
+    [extractTitleForUrl],
   );
 
   const renderContent = (content) => {
