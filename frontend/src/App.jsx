@@ -859,7 +859,7 @@ function App() {
               ) : (
                 <div className="landing-page" style={{ width: "100%" }}>
                   <div className='header-container'>
-                    <h1 className='app-header-text'>Welcome to Fact Check</h1>
+                    <h1 className='app-header-text'>Welcome to FactPulse</h1>
                     <p className='app-desciption-text'>Advanced fact-checking system powered by AI. Verify claims, analyze sources, and get detailed insights with confidence scores.</p>
                     <div className="feature-cards-wrapper">
                       <Box className="feature-cards">
