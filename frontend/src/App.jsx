@@ -1870,7 +1870,8 @@ function App() {
                             width: isSingleCard ? '100%' : '48%',
                             minWidth: 0,
                             minHeight: '220px',
-                            maxHeight: '220px',
+                            maxHeight: expandedResults[resultId] ? 'none' : '220px',
+                            overflow: expandedResults[resultId] ? 'visible' : 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between',
@@ -1880,7 +1881,6 @@ function App() {
                             border: '1px solid rgba(226, 232, 255, 0.7)',
                             transform: 'translateY(0)',
                             transition: 'all 0.4s ease-in-out',
-                            overflow: 'hidden',
                             '&:hover': {
                               transform: 'translateY(-5px)',
                               boxShadow: '0 15px 35px rgba(0, 0, 0, 0.12)',
@@ -1931,7 +1931,7 @@ function App() {
                           >
                             {renderContent(item.verdict)}
                           </Button>
-                          <CardContent sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '42px 24px 24px 24px' }}>
+                          <CardContent sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '62px 24px 24px 24px' }}>
                             <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '70%', overflowY: 'auto' }}>
                               <Typography
                                 variant="body1"
@@ -2051,7 +2051,8 @@ function App() {
                         width: '100%',
                         minWidth: 0,
                         minHeight: '220px',
-                        maxHeight: '220px',
+                        maxHeight: expandedResults[resultId] ? 'none' : '220px',
+                        overflow: expandedResults[resultId] ? 'visible' : 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
@@ -2061,7 +2062,6 @@ function App() {
                         border: '1px solid rgba(226, 232, 255, 0.7)',
                         transform: 'translateY(0)',
                         transition: 'all 0.4s ease-in-out',
-                        overflow: 'hidden',
                         '&:hover': {
                           transform: 'translateY(-5px)',
                           boxShadow: '0 15px 35px rgba(0, 0, 0, 0.12)',
