@@ -10,9 +10,9 @@
   display: flex;
   flex-direction: column;
   text-align: left;
-  background: #F9FBFC;
+  background: #fff;
   padding: 25px;
-  border: 2px solid rgba(226, 232, 255, 0.7);
+  border: 1px solid rgba(226, 232, 255, 0.7);
   transform: translateY(0);
   transition: all 0.4s ease-in-out;
   height: 100vh;
@@ -160,6 +160,7 @@
   position: absolute;
   bottom: 0;
   border-top-left-radius: 30px;
+  border-left: 0;
   display: flex;
   height: 92vh;
 }

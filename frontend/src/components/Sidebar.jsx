@@ -5,7 +5,7 @@ import { MdOutlineSecurity } from "react-icons/md";
 import { FaChartLine } from "react-icons/fa6";
 import genAIIcon from '../assets/genAI_icon.png';
 import genAILogo from '../assets/GenaiLogo.png';
-import factCheckLogo from '../assets/factCheck.png';
+import factCheckLogo from '../assets/FactPulse Logo.png';
 import './Sidebar.css';
 
 const Sidebar = ({ searchHistory }) => {
@@ -14,7 +14,7 @@ const Sidebar = ({ searchHistory }) => {
       <Box className="sidebar-content">
         <img 
           src={factCheckLogo} 
-          alt="Fact Check Logo" 
+          alt="FactPulse Logo" 
           style={{
             width: 'auto',
             height: '55px',
