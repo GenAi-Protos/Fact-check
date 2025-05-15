@@ -4,10 +4,16 @@ import collections.abc
 import os
 import uuid
 import shutil
-from typing import Optional, List
-from models.schemas import ExtractedClaimsResponse, ClaimsInput, FinalResponse
+from typing import Optional, List, Dict
+from models.schemas import (
+    ExtractedClaimsResponse,
+    ClaimsInput,
+    FinalResponse,
+
+)
+import json
 from core.fact_checker import FactChecker
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 # Create the router
 router = APIRouter(prefix="/fact-check", tags=["Fact Check"])
@@ -70,6 +76,7 @@ async def extract_claims(
     instagram_link: Optional[str] = Form(None),
     youtube_link: Optional[str] = Form(None),
     generic_link: Optional[str] = Form(None),
+    additional_info: Optional[str] = Form(None),
     image_file: Optional[UploadFile] = File(None),
     video_file: Optional[UploadFile] = File(None),
     fact_checker: FactChecker = Depends(get_fact_checker),
@@ -104,8 +111,26 @@ async def extract_claims(
             generic_link,
         )
 
+        # Initialize additional_info with user context
+        additional_info_content = f"""
+        \n\n\n
+        The user query is:  {query}.
+
+        These are the links passed by the user in the initial query:
+        {x_link if x_link else ""}
+        {facebook_link if facebook_link else ""}
+        {instagram_link if instagram_link else ""}
+        {youtube_link if youtube_link else ""}
+        {generic_link if generic_link else ""}
+"""
+        # Use the provided additional_info if any, otherwise use empty string
+        additional_info_final = (additional_info or "") + additional_info_content
         # Prepare the response
-        claims_response = {"event": "ClaimsExtracted", "claims": extracted_claims}
+        claims_response = {
+            "event": "ClaimsExtracted",
+            "claims": extracted_claims,
+            "additional_info": additional_info_final,
+        }
 
         # Convert to JSON and yield
         try:
@@ -125,6 +150,7 @@ async def extract_claims(
 async def ask_query(
     claims: List[str] = Body(..., embed=True),
     fact_checker: FactChecker = Depends(get_fact_checker),
+    additional_info: str = Body(..., embed=True),
 ):
     """
     Fact check a list of claims asynchronously
@@ -138,7 +164,7 @@ async def ask_query(
 
     async def stream_agent_response_json():
         # Process the claims through the fact checking pipeline
-        result = await fact_checker.fact_check_claims_async(claims)
+        result = await fact_checker.fact_check_claims_async(claims, additional_info)
 
         for chunk in result:
             try:
