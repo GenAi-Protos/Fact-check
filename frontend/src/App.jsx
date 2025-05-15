@@ -331,7 +331,7 @@ function App() {
       if (genericLink.trim()) formData.append('generic_link', genericLink);
       if (imageFile) formData.append('image_file', imageFile);
       if (videoFile) formData.append('video_file', videoFile);
-      if (additionalInstruction) formData.append('additional_instruction', additionalInstruction);
+      if (additionalInstruction) formData.append('fact_checker', additionalInstruction);
 console.log('formData', formData);
 
       const response = await fetch('http://localhost:8000/fact-check/extract-claims', {
