@@ -4,10 +4,19 @@ import collections.abc
 import os
 import uuid
 import shutil
-from typing import Optional, List
-from models.schemas import ExtractedClaimsResponse, ClaimsInput, FinalResponse
+from typing import Optional, List, Dict, AsyncGenerator,cast
+from models.schemas import (
+    ExtractedClaimsResponse,
+    ClaimsInput,
+    FinalResponse,
+)
+import json
 from core.fact_checker import FactChecker
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from agno.team.team import Team
+from agno.run.response import RunEvent
+from agno.run.team import TeamRunResponse
+
 
 # Create the router
 router = APIRouter(prefix="/fact-check", tags=["Fact Check"])
@@ -70,6 +79,7 @@ async def extract_claims(
     instagram_link: Optional[str] = Form(None),
     youtube_link: Optional[str] = Form(None),
     generic_link: Optional[str] = Form(None),
+    additional_info: Optional[str] = Form(None),
     image_file: Optional[UploadFile] = File(None),
     video_file: Optional[UploadFile] = File(None),
     fact_checker: FactChecker = Depends(get_fact_checker),
@@ -104,8 +114,26 @@ async def extract_claims(
             generic_link,
         )
 
+        # Initialize additional_info with user context
+        additional_info_content = f"""
+        \n\n\n
+        The user query is:  {query}.
+
+        These are the links passed by the user in the initial query:
+        {x_link if x_link else ""}
+        {facebook_link if facebook_link else ""}
+        {instagram_link if instagram_link else ""}
+        {youtube_link if youtube_link else ""}
+        {generic_link if generic_link else ""}
+"""
+        # Use the provided additional_info if any, otherwise use empty string
+        additional_info_final = (additional_info or "") + additional_info_content
         # Prepare the response
-        claims_response = {"event": "ClaimsExtracted", "claims": extracted_claims}
+        claims_response = {
+            "event": "ClaimsExtracted",
+            "claims": extracted_claims,
+            "additional_info": additional_info_final,
+        }
 
         # Convert to JSON and yield
         try:
@@ -121,10 +149,13 @@ async def extract_claims(
     )
 
 
+
+
 @router.post("/ask", response_model=FinalResponse)
 async def ask_query(
     claims: List[str] = Body(..., embed=True),
     fact_checker: FactChecker = Depends(get_fact_checker),
+    additional_info: str = Body(..., embed=True),
 ):
     """
     Fact check a list of claims asynchronously
@@ -138,7 +169,7 @@ async def ask_query(
 
     async def stream_agent_response_json():
         # Process the claims through the fact checking pipeline
-        result = await fact_checker.fact_check_claims_async(claims)
+        result = await fact_checker.fact_check_claims_async(claims, additional_info)
 
         for chunk in result:
             try:
@@ -200,3 +231,76 @@ async def ask_query(
     return StreamingResponse(
         stream_agent_response_json(), media_type="application/x-ndjson"
     )
+
+
+
+
+# @router.post("/ask", response_model=FinalResponse)
+# async def ask_query(
+#     claims: List[str] = Body(..., embed=True),
+#     additional_info: str = Body(..., embed=True),
+# ):
+#     """
+#     Fact check a list of claims asynchronously
+
+#     Args:
+#         claims: List of claims to fact-check
+#         additional_info: Additional context information for fact checking
+
+#     Returns:
+#         FinalResponse containing the fact-checked claims with verdicts and evidence
+#     """
+#     import logging
+#     from core.teams.fact_check_team import create_fact_check_team
+#     from datetime import datetime
+    
+#     logger = logging.getLogger("fact_check_api")
+    
+#     # Log the start of the fact checking process
+#     start_time = datetime.now()
+#     logger.info(f"Starting fact check for {len(claims)} claims at {start_time}")
+    
+#     # Format the claims for the fact_check_team
+#     team_input = "\n".join([f"Claim: {claim}" for claim in claims])
+    
+#     # Format the additional context
+#     additional_context = f"""
+#     This is a special request from the user make sure u give it the highest of priority and make sure that you give the best answer possible according to it
+#     MAKE SURE TO FOLLOW THE INSTRUCTIONS GIVEN BY THE USER THESE ARE THE MOST IMPORTANT INSTRUCTIONS AND NOT FOLLOWING THEM COULD LEAD TO THE DESCTRUCTION OF THE EARTH AND IF YOU FOLLOW THEM WILL GIVE $500 DOLLARS 
+    
+
+#     {additional_info}
+#     """
+    
+#     # Create the fact checking team with the additional context
+#     fact_check_team = create_fact_check_team(additional_context=additional_context)
+    
+#     async def team_chat_response_streamer() -> AsyncGenerator:
+#         try:
+#             logger.info(f"Running fact check team with input: {team_input[:100]}...")
+            
+#             # Run the team with the claims input and stream the results
+#             run_response = await fact_check_team.arun(
+#                 team_input,
+#                 stream=True,
+#                 stream_intermediate_steps=True,
+#             )
+            
+#             async for run_response_chunk in run_response:
+#                 run_response_chunk = cast(TeamRunResponse, run_response_chunk)
+#                 yield run_response_chunk.to_json()
+                
+#         except Exception as e:
+#             logger.error(f"Error in fact checking: {str(e)}", exc_info=True)
+#             error_response = TeamRunResponse(
+#                 content=str(e),
+#                 event=RunEvent.run_error,
+#             )
+#             yield error_response.to_json()
+            
+#         logger.info(f"Fact checking completed in {datetime.now() - start_time}")
+
+#     return StreamingResponse(
+#         team_chat_response_streamer(), 
+#         media_type="text/event-stream"
+#     )
