@@ -62,6 +62,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu'; // Added
+import { BiMessageSquareEdit } from "react-icons/bi";
 
 function App() {
   const [query, setQuery] = useState('');
@@ -103,6 +104,8 @@ function App() {
   const [sidebarContent, setSidebarContent] = useState('tasks'); // New state for sidebar content
   const [searchHistory, setSearchHistory] = useState(); // Added search history state
   const [mobileOpen, setMobileOpen] = useState(false); // Added for mobile sidebar
+  const [openInstructionDialog, setOpenInstructionDialog] = useState(false); // For Additional Instruction dialog
+  const [additionalInstruction, setAdditionalInstruction] = useState(''); // Store additional instruction
 
   const isMobile = useMediaQuery('(max-width:768px)'); // Added for responsive sidebar
 
@@ -328,6 +331,8 @@ function App() {
       if (genericLink.trim()) formData.append('generic_link', genericLink);
       if (imageFile) formData.append('image_file', imageFile);
       if (videoFile) formData.append('video_file', videoFile);
+      if (additionalInstruction) formData.append('additional_instruction', additionalInstruction);
+console.log('formData', formData);
 
       const response = await fetch('http://localhost:8000/fact-check/extract-claims', {
         method: 'POST',
@@ -351,7 +356,7 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [query, xLink, facebookLink, instagramLink, youtubeLink, genericLink, imageFile, videoFile]);
+    }, [query, xLink, facebookLink, instagramLink, youtubeLink, genericLink, imageFile, videoFile, additionalInstruction]);
 
   const handleClaimsSubmit = useCallback(async () => {
     if (selectedClaims.length === 0) {
@@ -797,6 +802,7 @@ function App() {
   const openPopover = Boolean(anchorEl);
 
   const drawerWidth = 250; // Define drawer width for consistency
+console.log('events', events);
 
   return (
     <div className="app-container" style={{ display: 'flex' }}>
@@ -920,7 +926,14 @@ function App() {
                         InputProps={{
                           endAdornment: (
                             <InputAdornment position="end">
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Button
+                        variant="outlined"
+                        className="submit-button"
+                        onClick={() => setOpenInstructionDialog(true)}
+                      >
+                        <BiMessageSquareEdit />
+                      </Button>
                                 <Button
                                   variant="contained"
                                   className="submit-button"
@@ -1798,8 +1811,14 @@ function App() {
                           className="feature-card"
                           sx={{
                             position: 'relative',
-                            padding: '16px',
-                            width: isSingleCard ? '100%' : 'calc(50% - 8px)',
+                            padding: '0',
+                            width: isSingleCard ? '100%' : '48%',
+                            minWidth: 0,
+                            minHeight: '220px',
+                            maxHeight: '220px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
                             borderRadius: '16px',
                             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.07)',
                             background: 'linear-gradient(135deg, #f3f6ff, #f5f0ff)',
@@ -1813,7 +1832,7 @@ function App() {
                               borderColor: 'rgba(226, 232, 255, 0.9)',
                             },
                             '&::after': {
-                              content: '\'\'',
+                              content: "''",
                               position: 'absolute',
                               bottom: 0,
                               left: 0,
@@ -1829,6 +1848,8 @@ function App() {
                             },
                             '@media (max-width: 600px)': {
                               width: '100%',
+                              minHeight: '160px',
+                              maxHeight: 'none',
                             },
                           }}
                         >
@@ -1855,60 +1876,64 @@ function App() {
                           >
                             {renderContent(item.verdict)}
                           </Button>
-                          <CardContent sx={{ paddingTop: '40px' }}>
-                            <Typography
-                              variant="body1"
-                              sx={{
-                                fontWeight: 'bold',
-                                marginBottom: '16px',
-                                color: '#000',
-                                lineHeight: '1.6',
-                              }}
-                            >
-                              {renderContent(item.claim)}
-                            </Typography>
-                            <Box className="confidence-details-row">
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
-                                  <CircularProgress
-                                    variant="determinate"
-                                    value={item.confidence ? Math.round(item.confidence * 100) : 0}
-                                    size={40}
-                                    thickness={4}
-                                    sx={{ color: confidenceColor }}
-                                  />
-                                  <Box
-                                    sx={{
-                                      top: 0,
-                                      left: 0,
-                                      bottom: 0,
-                                      right: 0,
-                                      position: 'absolute',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="caption"
-                                      component="div"
-                                      sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
-                                    >
-                                      {item.confidence ? `${Math.round(item.confidence * 100)}%` : 'N/A'}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                                <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
-                                  Confidence Score
-                                </Typography>
-                              </Box>
-                              <Button
-                                endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                                sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
-                                onClick={() => toggleDetails(resultId)}
+                          <CardContent sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '42px 24px 24px 24px' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '70%', overflowY: 'auto' }}>
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
+                                  marginBottom: '24px', // More space below claim
+                                  color: '#000',
+                                  lineHeight: '1.6',
+                                }}
                               >
-                                {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
-                              </Button>
+                                {renderContent(item.claim)}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ mt: 'auto' }}>
+                              <Box className="confidence-details-row">
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                    <CircularProgress
+                                      variant="determinate"
+                                      value={item.confidence ? Math.round(item.confidence * 100) : 0}
+                                      size={40}
+                                      thickness={4}
+                                      sx={{ color: confidenceColor }}
+                                    />
+                                    <Box
+                                      sx={{
+                                        top: 0,
+                                        left: 0,
+                                        bottom: 0,
+                                        right: 0,
+                                        position: 'absolute',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        component="div"
+                                        sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
+                                      >
+                                        {item.confidence ? `${Math.round(item.confidence * 100)}%` : 'N/A'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                  <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
+                                    Confidence Score
+                                  </Typography>
+                                </Box>
+                                <Button
+                                  endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                  sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
+                                  onClick={() => toggleDetails(resultId)}
+                                >
+                                  {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                                </Button>
+                              </Box>
                             </Box>
                             {expandedResults[resultId] && (
                               <Box sx={{ marginTop: '20px' }}>
@@ -1967,8 +1992,14 @@ function App() {
                       className="feature-card"
                       sx={{
                         position: 'relative',
-                        padding: '16px',
+                        padding: '0',
                         width: '100%',
+                        minWidth: 0,
+                        minHeight: '220px',
+                        maxHeight: '220px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
                         borderRadius: '16px',
                         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.07)',
                         background: 'linear-gradient(135deg, #f3f6ff, #f5f0ff)',
@@ -1982,7 +2013,7 @@ function App() {
                           borderColor: 'rgba(226, 232, 255, 0.9)',
                         },
                         '&::after': {
-                          content: '\'\'',
+                          content: "''",
                           position: 'absolute',
                           bottom: 0,
                           left: 0,
@@ -1995,6 +2026,11 @@ function App() {
                         },
                         '&:hover::after': {
                           transform: 'scaleX(1)',
+                        },
+                        '@media (max-width: 600px)': {
+                          width: '100%',
+                          minHeight: '160px',
+                          maxHeight: 'none',
                         },
                       }}
                     >
@@ -2018,60 +2054,64 @@ function App() {
                       >
                         {renderContent(parsedResult.verdict)}
                       </Button>
-                      <CardContent sx={{ paddingTop: '40px' }}>
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 'bold',
-                            marginBottom: '16px',
-                            color: '#000',
-                            lineHeight: '1.6',
-                          }}
-                        >
-                          {renderContent(parsedResult.claim)}
-                        </Typography>
-                        <Box className="confidence-details-row">
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
-                              <CircularProgress
-                                variant="determinate"
-                                value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0}
-                                size={40}
-                                thickness={4}
-                                sx={{ color: confidenceColor }}
-                              />
-                              <Box
-                                sx={{
-                                  top: 0,
-                                  left: 0,
-                                  bottom: 0,
-                                  right: 0,
-                                  position: 'absolute',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                              >
-                                <Typography
-                                  variant="caption"
-                                  component="div"
-                                  sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
-                                >
-                                  {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Box>
-                            <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
-                              Confidence Score
-                            </Typography>
-                          </Box>
-                          <Button
-                            endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                            sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
-                            onClick={() => toggleDetails(resultId)}
+                      <CardContent sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '32px 24px 24px 24px' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 'bold',
+                              marginBottom: '24px', // More space below claim
+                              color: '#000',
+                              lineHeight: '1.6',
+                            }}
                           >
-                            {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
-                          </Button>
+                            {renderContent(parsedResult.claim)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ mt: 'auto' }}>
+                          <Box className="confidence-details-row">
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Box sx={{ position: 'relative', display: 'inline-flex', marginRight: '10px' }}>
+                                <CircularProgress
+                                  variant="determinate"
+                                  value={parsedResult.confidence ? Math.round(parsedResult.confidence * 100) : 0}
+                                  size={40}
+                                  thickness={4}
+                                  sx={{ color: confidenceColor }}
+                                />
+                                <Box
+                                  sx={{
+                                    top: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                    right: 0,
+                                    position: 'absolute',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    component="div"
+                                    sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: confidenceColor }}
+                                  >
+                                    {parsedResult.confidence ? `${Math.round(parsedResult.confidence * 100)}%` : 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Typography variant="body2" sx={{ color: '#000', fontSize: '0.9rem' }}>
+                                Confidence Score
+                              </Typography>
+                            </Box>
+                            <Button
+                              endIcon={expandedResults[resultId] ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                              sx={{ textTransform: 'none', color: '#4C46DA', fontSize: '0.9rem' }}
+                              onClick={() => toggleDetails(resultId)}
+                            >
+                              {expandedResults[resultId] ? 'Hide Details' : 'View Details'}
+                            </Button>
+                          </Box>
                         </Box>
                         {expandedResults[resultId] && (
                           <Box sx={{ marginTop: '20px' }}>
@@ -2375,6 +2415,95 @@ function App() {
           </Box>
         )}
       </Box>
+      <Dialog
+        open={openInstructionDialog}
+        onClose={() => setOpenInstructionDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            backgroundColor: '#FDFEFE',
+            color: '#343A40',
+            p: 0,
+            borderRadius: '12px',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: '600', color: '#212529', paddingBottom: 1 }}>
+          Additional Instruction
+          <IconButton
+            onClick={() => setOpenInstructionDialog(false)}
+            sx={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              color: '#6C757D',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '16px !important' }}>
+          <TextField
+            variant="outlined"
+            placeholder="Enter any additional instructions for the fact-checking..."
+            value={additionalInstruction}
+            onChange={(e) => setAdditionalInstruction(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={4}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#FFFFFF',
+                borderRadius: '8px',
+                '& fieldset': { borderColor: '#CED4DA' },
+                '&:hover fieldset': { borderColor: '#ADB5BD' },
+                '&.Mui-focused fieldset': { borderColor: '#0D6EFD' },
+              },
+              '& textarea::placeholder': { color: '#6C757D', opacity: 1 },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ padding: '16px 24px', borderTop: '1px solid #E9ECEF' }}>
+          <Button
+            onClick={() => setOpenInstructionDialog(false)}
+            sx={{
+              color: '#495057',
+              textTransform: 'none',
+              borderRadius: '8px',
+              padding: '6px 16px',
+              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)'}
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => setOpenInstructionDialog(false)}
+            variant="contained"
+            sx={{
+              color: '#FFFFFF',
+              minWidth: '40px',
+              height: '40px',
+              background: 'linear-gradient(135deg, #4C46DA, #6E66FF)',
+              boxShadow: '0 6px 16px rgba(76, 70, 218, 0.25)',
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5C56EA, #7E76FF)',
+                transform: 'scale(1.1) rotate(1deg)',
+                boxShadow: '0 8px 20px rgba(76, 70, 218, 0.35)',
+              },
+              textTransform: 'none',
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

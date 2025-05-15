@@ -294,12 +294,17 @@
   width: 100%;
   margin: 0 auto;
   margin-top: 20px;
+  height: 100%;
+  overflow-y: scroll;
+  margin-bottom: 3vh;
 }
 
 .result-row {
   display: flex;
   gap: 16px;
   width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 /* Confidence Details Row */
 .confidence-details-row {
@@ -1035,7 +1040,7 @@
 }
 .header-container {
   position: absolute;
-  top: 20%;
+  top: 10%;
   margin-bottom: 4vh;
 }
 @keyframes fadeIn {
