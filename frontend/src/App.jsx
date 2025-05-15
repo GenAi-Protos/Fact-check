@@ -331,8 +331,7 @@ function App() {
       if (genericLink.trim()) formData.append('generic_link', genericLink);
       if (imageFile) formData.append('image_file', imageFile);
       if (videoFile) formData.append('video_file', videoFile);
-      if (additionalInstruction) formData.append('fact_checker', additionalInstruction);
-console.log('formData', formData);
+      if (additionalInstruction) formData.append('additional_info', additionalInstruction);
 
       const response = await fetch('http://localhost:8000/fact-check/extract-claims', {
         method: 'POST',
@@ -380,7 +379,7 @@ console.log('formData', formData);
           'Content-Type': 'application/json',
           Accept: 'application/x-ndjson',
         },
-        body: JSON.stringify({ claims: selectedClaims }),
+        body: JSON.stringify({ claims: selectedClaims, additional_info: additionalInstruction }),
       });
 
       if (!response.ok) {
@@ -802,7 +801,6 @@ console.log('formData', formData);
   const openPopover = Boolean(anchorEl);
 
   const drawerWidth = 250; // Define drawer width for consistency
-console.log('events', events);
 
   return (
     <div className="app-container" style={{ display: 'flex' }}>
@@ -1088,6 +1086,13 @@ console.log('events', events);
             value={xLink}
             onChange={(e) => setXLink(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: xLink && (
+                <IconButton size="small" onClick={() => setXLink('')} sx={{ color: '#E95A7C' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              ),
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: '#FFFFFF',
@@ -1105,6 +1110,13 @@ console.log('events', events);
             value={facebookLink}
             onChange={(e) => setFacebookLink(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: facebookLink && (
+                <IconButton size="small" onClick={() => setFacebookLink('')} sx={{ color: '#E95A7C' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              ),
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: '#FFFFFF',
@@ -1122,6 +1134,13 @@ console.log('events', events);
             value={instagramLink}
             onChange={(e) => setInstagramLink(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: instagramLink && (
+                <IconButton size="small" onClick={() => setInstagramLink('')} sx={{ color: '#E95A7C' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              ),
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: '#FFFFFF',
@@ -1139,6 +1158,13 @@ console.log('events', events);
             value={youtubeLink}
             onChange={(e) => setYoutubeLink(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: youtubeLink && (
+                <IconButton size="small" onClick={() => setYoutubeLink('')} sx={{ color: '#E95A7C' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              ),
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: '#FFFFFF',
@@ -1156,6 +1182,13 @@ console.log('events', events);
             value={genericLink}
             onChange={(e) => setGenericLink(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: genericLink && (
+                <IconButton size="small" onClick={() => setGenericLink('')} sx={{ color: '#E95A7C' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              ),
+            }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: '#FFFFFF',
@@ -1177,6 +1210,17 @@ console.log('events', events);
               onChange={(e) => setImageFile(e.target.files[0])}
               style={{ display: 'block', color: '#495057' }}
             />
+            {imageFile && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, background: '#fff', borderRadius: '6px', px: 1, py: 0.5, border: '1px solid #CED4DA' }}>
+                <ImageIcon sx={{ color: '#6C757D', fontSize: 18 }} />
+                <Typography variant="body2" sx={{ color: '#495057', fontSize: '0.95em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {imageFile.name}
+                </Typography>
+                <IconButton size="small" onClick={() => setImageFile(null)} sx={{ color: '#E95A7C', p: 0.5 }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
           <Box sx={{ border: '1px dashed #CED4DA', padding: 2, borderRadius: '8px', backgroundColor: '#F8F9FA' }}>
             <Typography variant="body2" sx={{ mb: 1, color: '#495057', fontWeight: 500 }}>
@@ -1188,6 +1232,17 @@ console.log('events', events);
               onChange={(e) => setVideoFile(e.target.files[0])}
               style={{ display: 'block', color: '#495057' }}
             />
+            {videoFile && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, background: '#fff', borderRadius: '6px', px: 1, py: 0.5, border: '1px solid #CED4DA' }}>
+                <VideocamIcon sx={{ color: '#6C757D', fontSize: 18 }} />
+                <Typography variant="body2" sx={{ color: '#495057', fontSize: '0.95em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {videoFile.name}
+                </Typography>
+                <IconButton size="small" onClick={() => setVideoFile(null)} sx={{ color: '#E95A7C', p: 0.5 }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
         </Box>
       </DialogContent>
@@ -2161,7 +2216,7 @@ console.log('events', events);
           </Box>
         )}
 
-        {showResults && (events.length !== 0 || displayedUrls.length !== 0) && (
+        {showResults && (leftEventsState.length !== 0 || displayedUrls.length !== 0) && (
           <Box className="response-sidebar">
             <Box sx={{ padding: 2, borderBottom: '2px solid rgba(230, 235, 255, 0.7)', display: 'flex', justifyContent: 'space-between' }}>
               <Typography
